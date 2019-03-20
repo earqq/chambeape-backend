@@ -13,7 +13,7 @@ import (
 	"github.com/rs/cors"
 )
 
-const defaultPort = "8081"
+const defaultPort = "8083"
 
 func main() {
 	port := os.Getenv("PORT")
@@ -39,5 +39,5 @@ func main() {
 
 	http.Handle("/", r)
 
-	log.Fatal(http.ListenAndServe(":8081", nil))
+	log.Fatal(http.ListenAndServe(":8083", nil))
 }
