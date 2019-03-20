@@ -1,0 +1,41 @@
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+type Query {
+    profile(id: ID!): Profile!
+    profiles: [Profile]!
+}
+type Mutation {
+    createProfile(input: NewProfile!): Profile!
+    updateProfile(input: UpdateProfile!): Profile!
+}
+type Profile {
+    id: ID!
+    names: String!
+    email: String!
+    birthdate: String!
+    token: String!
+    phone: String!
+    img: String!
+}
+
+input NewProfile {
+    email: String!
+    names: String!  
+    birthdate: String
+    token: String!
+    phone: String
+    img: String
+}
+
+input UpdateProfile {
+    id: ID!
+    names: String
+    img: String
+    email: String
+    birthdate: String
+    phone: String
+    token: String
+}
