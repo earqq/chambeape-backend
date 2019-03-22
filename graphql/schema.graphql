@@ -4,7 +4,7 @@ schema {
 }
 
 type Query {
-    profile(id: String!): Profile!
+    profile(id_public: String!): Profile!
     profiles: [Profile]!
 }
 type Mutation {

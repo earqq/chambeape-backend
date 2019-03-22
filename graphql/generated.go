@@ -58,7 +58,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Profile  func(childComplexity int, id string) int
+		Profile  func(childComplexity int, idPublic string) int
 		Profiles func(childComplexity int) int
 	}
 }
@@ -68,7 +68,7 @@ type MutationResolver interface {
 	UpdateProfile(ctx context.Context, input UpdateProfile) (*Profile, error)
 }
 type QueryResolver interface {
-	Profile(ctx context.Context, id string) (*Profile, error)
+	Profile(ctx context.Context, idPublic string) (*Profile, error)
 	Profiles(ctx context.Context) ([]*Profile, error)
 }
 
@@ -177,7 +177,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Profile(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.Profile(childComplexity, args["id_public"].(string)), true
 
 	case "Query.Profiles":
 		if e.complexity.Query.Profiles == nil {
@@ -269,7 +269,7 @@ var parsedSchema = gqlparser.MustLoadSchema(
 }
 
 type Query {
-    profile(id: String!): Profile!
+    profile(id_public: String!): Profile!
     profiles: [Profile]!
 }
 type Mutation {
@@ -359,13 +359,13 @@ func (ec *executionContext) field_Query_profile_args(ctx context.Context, rawArg
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
+	if tmp, ok := rawArgs["id_public"]; ok {
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
+	args["id_public"] = arg0
 	return args, nil
 }
 
@@ -694,7 +694,7 @@ func (ec *executionContext) _Query_profile(ctx context.Context, field graphql.Co
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Profile(rctx, args["id"].(string))
+		return ec.resolvers.Query().Profile(rctx, args["id_public"].(string))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {

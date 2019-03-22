@@ -5,7 +5,7 @@ package graphql
 type NewProfile struct {
 	Email     string  `json:"email"`
 	Names     string  `json:"names"`
-	IDPublic  string  `json:"id_public" bson:"id_public"`
+	IDPublic  string  `json:"id_public"`
 	Birthdate *string `json:"birthdate"`
 	Token     string  `json:"token"`
 	Phone     *string `json:"phone"`

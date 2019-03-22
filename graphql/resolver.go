@@ -3,6 +3,7 @@ package graphql
 import (
 	"context"
 	"errors"
+	"fmt"
 	"tuchamba/db"
 
 	"github.com/globalsign/mgo"
@@ -100,13 +101,13 @@ func (r *mutationResolver) UpdateProfile(ctx context.Context, input UpdateProfil
 
 type queryResolver struct{ *Resolver }
 
-func (r *queryResolver) Profile(ctx context.Context, id string) (*Profile, error) {
+func (r *queryResolver) Profile(ctx context.Context, public_id string) (*Profile, error) {
 	var user Profile
 
-	if err := r.profiles.Find(bson.M{"public_id": id}).One(&user); err != nil {
+	fmt.Print(public_id)
+	if err := r.profiles.Find(bson.M{"id_public": public_id}).One(&user); err != nil {
 		return &Profile{}, err
 	}
-
 	user.ID = bson.ObjectId(user.ID).Hex()
 
 	return &user, nil
