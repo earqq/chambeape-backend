@@ -22,7 +22,7 @@ func main() {
 	}
 	db.ConnectDB()
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:" + port},
+		AllowedOrigins:   []string{"*"},
 		AllowCredentials: true,
 	})
 
