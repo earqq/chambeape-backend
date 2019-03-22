@@ -4,7 +4,7 @@ schema {
 }
 
 type Query {
-    profile(id: ID!): Profile!
+    profile(id: String!): Profile!
     profiles: [Profile]!
 }
 type Mutation {
@@ -13,6 +13,7 @@ type Mutation {
 }
 type Profile {
     id: ID!
+    id_public: String!
     names: String!
     email: String!
     birthdate: String!
@@ -24,6 +25,7 @@ type Profile {
 input NewProfile {
     email: String!
     names: String!  
+    id_public:String!
     birthdate: String
     token: String!
     phone: String
@@ -31,7 +33,7 @@ input NewProfile {
 }
 
 input UpdateProfile {
-    id: ID!
+    id: String!
     names: String
     img: String
     email: String

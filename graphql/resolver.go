@@ -42,7 +42,7 @@ func (r *mutationResolver) CreateProfile(ctx context.Context, input NewProfile) 
 		return &Profile{}, errors.New("user with that email already exists")
 	}
 
-	err = r.profiles.Insert(bson.M{"email": input.Email, "names": input.Names, "token": input.Token, "phone": input.Phone, "img": input.Img})
+	err = r.profiles.Insert(bson.M{"email": input.Email, "names": input.Names, "token": input.Token, "phone": input.Phone, "img": input.Img, "id_public": input.IDPublic})
 	if err != nil {
 		return &Profile{}, err
 	}
@@ -103,7 +103,7 @@ type queryResolver struct{ *Resolver }
 func (r *queryResolver) Profile(ctx context.Context, id string) (*Profile, error) {
 	var user Profile
 
-	if err := r.profiles.FindId(bson.ObjectIdHex(id)).One(&user); err != nil {
+	if err := r.profiles.Find(bson.M{"public_id": id}).One(&user); err != nil {
 		return &Profile{}, err
 	}
 

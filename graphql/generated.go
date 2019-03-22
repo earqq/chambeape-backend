@@ -48,6 +48,7 @@ type ComplexityRoot struct {
 
 	Profile struct {
 		ID        func(childComplexity int) int
+		IDPublic  func(childComplexity int) int
 		Names     func(childComplexity int) int
 		Email     func(childComplexity int) int
 		Birthdate func(childComplexity int) int
@@ -116,6 +117,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Profile.ID(childComplexity), true
+
+	case "Profile.IDPublic":
+		if e.complexity.Profile.IDPublic == nil {
+			break
+		}
+
+		return e.complexity.Profile.IDPublic(childComplexity), true
 
 	case "Profile.Names":
 		if e.complexity.Profile.Names == nil {
@@ -261,7 +269,7 @@ var parsedSchema = gqlparser.MustLoadSchema(
 }
 
 type Query {
-    profile(id: ID!): Profile!
+    profile(id: String!): Profile!
     profiles: [Profile]!
 }
 type Mutation {
@@ -270,6 +278,7 @@ type Mutation {
 }
 type Profile {
     id: ID!
+    id_public: String!
     names: String!
     email: String!
     birthdate: String!
@@ -281,6 +290,7 @@ type Profile {
 input NewProfile {
     email: String!
     names: String!  
+    id_public:String!
     birthdate: String
     token: String!
     phone: String
@@ -288,7 +298,7 @@ input NewProfile {
 }
 
 input UpdateProfile {
-    id: ID!
+    id: String!
     names: String
     img: String
     email: String
@@ -350,7 +360,7 @@ func (ec *executionContext) field_Query_profile_args(ctx context.Context, rawArg
 	args := map[string]interface{}{}
 	var arg0 string
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -481,6 +491,32 @@ func (ec *executionContext) _Profile_id(ctx context.Context, field graphql.Colle
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Profile_id_public(ctx context.Context, field graphql.CollectedField, obj *Profile) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Profile",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IDPublic, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Profile_names(ctx context.Context, field graphql.CollectedField, obj *Profile) graphql.Marshaler {
@@ -1568,6 +1604,12 @@ func (ec *executionContext) unmarshalInputNewProfile(ctx context.Context, v inte
 			if err != nil {
 				return it, err
 			}
+		case "id_public":
+			var err error
+			it.IDPublic, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "birthdate":
 			var err error
 			it.Birthdate, err = ec.unmarshalOString2ᚖstring(ctx, v)
@@ -1606,7 +1648,7 @@ func (ec *executionContext) unmarshalInputUpdateProfile(ctx context.Context, v i
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			it.ID, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -1709,6 +1751,11 @@ func (ec *executionContext) _Profile(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = graphql.MarshalString("Profile")
 		case "id":
 			out.Values[i] = ec._Profile_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "id_public":
+			out.Values[i] = ec._Profile_id_public(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
