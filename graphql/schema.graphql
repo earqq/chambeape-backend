@@ -34,10 +34,10 @@ input NewProfile {
 
 input UpdateProfile {
     id_public: String!
-    names: String
-    img: String
-    email: String
-    birthdate: String
-    phone: String
-    profile_type: Int
+    names: String!
+    img: String!
+    email: String!
+    birthdate: String!
+    phone: String!
+    profile_type: Int!
 }

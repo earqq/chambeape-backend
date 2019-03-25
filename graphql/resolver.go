@@ -60,28 +60,28 @@ func (r *mutationResolver) UpdateProfile(ctx context.Context, input UpdateProfil
 
 	update := false
 
-	if input.Names != nil && *input.Names != "" {
-		fields["names"] = *input.Names
+	if &input.Names != nil && input.Names != "" {
+		fields["names"] = input.Names
 		update = true
 	}
-	if input.Phone != nil && *input.Phone != "" {
-		fields["phone"] = *input.Phone
+	if &input.Phone != nil && input.Phone != "" {
+		fields["phone"] = input.Phone
 		update = true
 	}
 	if &input.IDPublic != nil && input.IDPublic != "" {
 		fields["id_public"] = input.IDPublic
 		update = true
 	}
-	if input.Img != nil && *input.Img != "" {
-		fields["img"] = *input.Img
+	if &input.Img != nil && input.Img != "" {
+		fields["img"] = input.Img
 		update = true
 	}
-	if input.Email != nil && *input.Email != "" {
-		fields["email"] = *input.Email
+	if &input.Email != nil && input.Email != "" {
+		fields["email"] = input.Email
 		update = true
 	}
-	if input.Email != nil && *input.Email != "" {
-		fields["profile_type"] = *input.Email
+	if &input.Email != nil && input.Email != "" {
+		fields["profile_type"] = input.Email
 		update = true
 	}
 

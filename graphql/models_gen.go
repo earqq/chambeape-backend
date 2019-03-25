@@ -24,11 +24,11 @@ type Profile struct {
 }
 
 type UpdateProfile struct {
-	IDPublic    string  `json:"id_public" bson:"id_public"`
-	Names       *string `json:"names"`
-	Img         *string `json:"img"`
-	Email       *string `json:"email"`
-	Birthdate   *string `json:"birthdate"`
-	Phone       *string `json:"phone"`
-	ProfileType *int    `json:"profile_type"`
+	IDPublic    string `json:"id_public" bson:"id_public"`
+	Names       string `json:"names"`
+	Img         string `json:"img"`
+	Email       string `json:"email"`
+	Birthdate   string `json:"birthdate"`
+	Phone       string `json:"phone"`
+	ProfileType int    `json:"profile_type"`
 }

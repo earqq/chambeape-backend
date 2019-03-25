@@ -299,12 +299,12 @@ input NewProfile {
 
 input UpdateProfile {
     id_public: String!
-    names: String
-    img: String
-    email: String
-    birthdate: String
-    phone: String
-    profile_type: Int
+    names: String!
+    img: String!
+    email: String!
+    birthdate: String!
+    phone: String!
+    profile_type: Int!
 }
 `},
 )
@@ -1654,37 +1654,37 @@ func (ec *executionContext) unmarshalInputUpdateProfile(ctx context.Context, v i
 			}
 		case "names":
 			var err error
-			it.Names, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			it.Names, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "img":
 			var err error
-			it.Img, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			it.Img, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "email":
 			var err error
-			it.Email, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			it.Email, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "birthdate":
 			var err error
-			it.Birthdate, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			it.Birthdate, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "phone":
 			var err error
-			it.Phone, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			it.Phone, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "profile_type":
 			var err error
-			it.ProfileType, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.ProfileType, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2429,29 +2429,6 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
-}
-
-func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {
-	return graphql.UnmarshalInt(v)
-}
-
-func (ec *executionContext) marshalOInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
-	return graphql.MarshalInt(v)
-}
-
-func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalOInt2int(ctx, v)
-	return &res, err
-}
-
-func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec.marshalOInt2int(ctx, sel, *v)
 }
 
 func (ec *executionContext) marshalOProfile2tuchambaᚋgraphqlᚐProfile(ctx context.Context, sel ast.SelectionSet, v Profile) graphql.Marshaler {
