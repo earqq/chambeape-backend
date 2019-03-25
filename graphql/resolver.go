@@ -81,7 +81,7 @@ func (r *mutationResolver) UpdateProfile(ctx context.Context, input UpdateProfil
 		update = true
 	}
 	if &input.Email != nil && input.Email != "" {
-		fields["profile_type"] = input.Email
+		fields["profile_type"] = input.ProfileType
 		update = true
 	}
 
@@ -108,7 +108,6 @@ type queryResolver struct{ *Resolver }
 func (r *queryResolver) Profile(ctx context.Context, public_id string) (*Profile, error) {
 	var user Profile
 
-	fmt.Print(public_id)
 	if err := r.profiles.Find(bson.M{"id_public": public_id}).One(&user); err != nil {
 		return &Profile{}, err
 	}
@@ -119,5 +118,6 @@ func (r *queryResolver) Profile(ctx context.Context, public_id string) (*Profile
 func (r *queryResolver) Profiles(ctx context.Context) ([]*Profile, error) {
 	var profiles []*Profile
 	r.profiles.Find(bson.M{}).All(&profiles)
+	fmt.Print(profiles)
 	return profiles, nil
 }

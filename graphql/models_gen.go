@@ -8,14 +8,14 @@ type NewProfile struct {
 	IDPublic    string  `json:"id_public" bson:"id_public"`
 	Birthdate   *string `json:"birthdate"`
 	Phone       *string `json:"phone"`
-	ProfileType int     `json:"profile_type"`
+	ProfileType int     `json:"profile_type" bson:"profile_type"`
 	Img         *string `json:"img"`
 }
 
 type Profile struct {
 	ID          string `json:"id"`
 	IDPublic    string `json:"id_public" bson:"id_public"`
-	ProfileType int    `json:"profile_type"`
+	ProfileType int    `json:"profile_type" bson:"profile_type"`
 	Names       string `json:"names"`
 	Email       string `json:"email"`
 	Birthdate   string `json:"birthdate"`
@@ -30,5 +30,5 @@ type UpdateProfile struct {
 	Email       string `json:"email"`
 	Birthdate   string `json:"birthdate"`
 	Phone       string `json:"phone"`
-	ProfileType int    `json:"profile_type"`
+	ProfileType int    `json:"profile_type" bson:"profile_type"`
 }
