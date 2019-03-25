@@ -47,14 +47,14 @@ type ComplexityRoot struct {
 	}
 
 	Profile struct {
-		ID        func(childComplexity int) int
-		IDPublic  func(childComplexity int) int
-		Names     func(childComplexity int) int
-		Email     func(childComplexity int) int
-		Birthdate func(childComplexity int) int
-		Token     func(childComplexity int) int
-		Phone     func(childComplexity int) int
-		Img       func(childComplexity int) int
+		ID          func(childComplexity int) int
+		IDPublic    func(childComplexity int) int
+		ProfileType func(childComplexity int) int
+		Names       func(childComplexity int) int
+		Email       func(childComplexity int) int
+		Birthdate   func(childComplexity int) int
+		Phone       func(childComplexity int) int
+		Img         func(childComplexity int) int
 	}
 
 	Query struct {
@@ -125,6 +125,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Profile.IDPublic(childComplexity), true
 
+	case "Profile.ProfileType":
+		if e.complexity.Profile.ProfileType == nil {
+			break
+		}
+
+		return e.complexity.Profile.ProfileType(childComplexity), true
+
 	case "Profile.Names":
 		if e.complexity.Profile.Names == nil {
 			break
@@ -145,13 +152,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Profile.Birthdate(childComplexity), true
-
-	case "Profile.Token":
-		if e.complexity.Profile.Token == nil {
-			break
-		}
-
-		return e.complexity.Profile.Token(childComplexity), true
 
 	case "Profile.Phone":
 		if e.complexity.Profile.Phone == nil {
@@ -279,10 +279,10 @@ type Mutation {
 type Profile {
     id: ID!
     id_public: String!
+    profile_type: Int!
     names: String!
     email: String!
     birthdate: String!
-    token: String!
     phone: String!
     img: String!
 }
@@ -292,19 +292,19 @@ input NewProfile {
     names: String!  
     id_public:String!
     birthdate: String
-    token: String!
     phone: String
+    profile_type: Int!
     img: String
 }
 
 input UpdateProfile {
-    id: String!
+    id_public: String!
     names: String
     img: String
     email: String
     birthdate: String
     phone: String
-    token: String
+    profile_type: Int
 }
 `},
 )
@@ -519,6 +519,32 @@ func (ec *executionContext) _Profile_id_public(ctx context.Context, field graphq
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Profile_profile_type(ctx context.Context, field graphql.CollectedField, obj *Profile) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Profile",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProfileType, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Profile_names(ctx context.Context, field graphql.CollectedField, obj *Profile) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -584,32 +610,6 @@ func (ec *executionContext) _Profile_birthdate(ctx context.Context, field graphq
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Birthdate, nil
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Profile_token(ctx context.Context, field graphql.CollectedField, obj *Profile) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Profile",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Token, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1616,15 +1616,15 @@ func (ec *executionContext) unmarshalInputNewProfile(ctx context.Context, v inte
 			if err != nil {
 				return it, err
 			}
-		case "token":
-			var err error
-			it.Token, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "phone":
 			var err error
 			it.Phone, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "profile_type":
+			var err error
+			it.ProfileType, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -1646,9 +1646,9 @@ func (ec *executionContext) unmarshalInputUpdateProfile(ctx context.Context, v i
 
 	for k, v := range asMap {
 		switch k {
-		case "id":
+		case "id_public":
 			var err error
-			it.ID, err = ec.unmarshalNString2string(ctx, v)
+			it.IDPublic, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -1682,9 +1682,9 @@ func (ec *executionContext) unmarshalInputUpdateProfile(ctx context.Context, v i
 			if err != nil {
 				return it, err
 			}
-		case "token":
+		case "profile_type":
 			var err error
-			it.Token, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			it.ProfileType, err = ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -1759,6 +1759,11 @@ func (ec *executionContext) _Profile(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "profile_type":
+			out.Values[i] = ec._Profile_profile_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "names":
 			out.Values[i] = ec._Profile_names(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -1771,11 +1776,6 @@ func (ec *executionContext) _Profile(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "birthdate":
 			out.Values[i] = ec._Profile_birthdate(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
-		case "token":
-			out.Values[i] = ec._Profile_token(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
@@ -2119,6 +2119,14 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return graphql.MarshalID(v)
 }
 
+func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
+	return graphql.UnmarshalInt(v)
+}
+
+func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	return graphql.MarshalInt(v)
+}
+
 func (ec *executionContext) unmarshalNNewProfile2tuchambaᚋgraphqlᚐNewProfile(ctx context.Context, v interface{}) (NewProfile, error) {
 	return ec.unmarshalInputNewProfile(ctx, v)
 }
@@ -2421,6 +2429,29 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
+}
+
+func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {
+	return graphql.UnmarshalInt(v)
+}
+
+func (ec *executionContext) marshalOInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	return graphql.MarshalInt(v)
+}
+
+func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOInt2int(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec.marshalOInt2int(ctx, sel, *v)
 }
 
 func (ec *executionContext) marshalOProfile2tuchambaᚋgraphqlᚐProfile(ctx context.Context, sel ast.SelectionSet, v Profile) graphql.Marshaler {

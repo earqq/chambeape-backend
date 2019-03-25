@@ -14,10 +14,10 @@ type Mutation {
 type Profile {
     id: ID!
     id_public: String!
+    profile_type: Int!
     names: String!
     email: String!
     birthdate: String!
-    token: String!
     phone: String!
     img: String!
 }
@@ -27,17 +27,17 @@ input NewProfile {
     names: String!  
     id_public:String!
     birthdate: String
-    token: String!
     phone: String
+    profile_type: Int!
     img: String
 }
 
 input UpdateProfile {
-    id: String!
+    id_public: String!
     names: String
     img: String
     email: String
     birthdate: String
     phone: String
-    token: String
+    profile_type: Int
 }

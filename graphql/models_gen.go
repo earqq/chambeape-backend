@@ -3,32 +3,32 @@
 package graphql
 
 type NewProfile struct {
-	Email     string  `json:"email"`
-	Names     string  `json:"names"`
-	IDPublic  string  `json:"id_public"`
-	Birthdate *string `json:"birthdate"`
-	Token     string  `json:"token"`
-	Phone     *string `json:"phone"`
-	Img       *string `json:"img"`
+	Email       string  `json:"email"`
+	Names       string  `json:"names"`
+	IDPublic    string  `json:"id_public" bson:"id_public"`
+	Birthdate   *string `json:"birthdate"`
+	Phone       *string `json:"phone"`
+	ProfileType int     `json:"profile_type"`
+	Img         *string `json:"img"`
 }
 
 type Profile struct {
-	ID        string `json:"id"`
-	IDPublic  string `json:"id_public" bson:"id_public"`
-	Names     string `json:"names"`
-	Email     string `json:"email"`
-	Birthdate string `json:"birthdate"`
-	Token     string `json:"token"`
-	Phone     string `json:"phone"`
-	Img       string `json:"img"`
+	ID          string `json:"id"`
+	IDPublic    string `json:"id_public" bson:"id_public"`
+	ProfileType int    `json:"profile_type"`
+	Names       string `json:"names"`
+	Email       string `json:"email"`
+	Birthdate   string `json:"birthdate"`
+	Phone       string `json:"phone"`
+	Img         string `json:"img"`
 }
 
 type UpdateProfile struct {
-	ID        string  `json:"id"`
-	Names     *string `json:"names"`
-	Img       *string `json:"img"`
-	Email     *string `json:"email"`
-	Birthdate *string `json:"birthdate"`
-	Phone     *string `json:"phone"`
-	Token     *string `json:"token"`
+	IDPublic    string  `json:"id_public" bson:"id_public"`
+	Names       *string `json:"names"`
+	Img         *string `json:"img"`
+	Email       *string `json:"email"`
+	Birthdate   *string `json:"birthdate"`
+	Phone       *string `json:"phone"`
+	ProfileType *int    `json:"profile_type"`
 }

@@ -42,8 +42,7 @@ func (r *mutationResolver) CreateProfile(ctx context.Context, input NewProfile) 
 	} else if count > 0 {
 		return &Profile{}, errors.New("user with that email already exists")
 	}
-
-	err = r.profiles.Insert(bson.M{"email": input.Email, "names": input.Names, "token": input.Token, "phone": input.Phone, "img": input.Img, "id_public": input.IDPublic})
+	err = r.profiles.Insert(bson.M{"email": input.Email, "names": input.Names, "profile_type": input.ProfileType, "id_public": input.IDPublic, "phone": input.Phone, "img": input.Img})
 	if err != nil {
 		return &Profile{}, err
 	}
@@ -62,23 +61,27 @@ func (r *mutationResolver) UpdateProfile(ctx context.Context, input UpdateProfil
 	update := false
 
 	if input.Names != nil && *input.Names != "" {
-		fields["first"] = *input.Names
+		fields["names"] = *input.Names
 		update = true
 	}
 	if input.Phone != nil && *input.Phone != "" {
-		fields["last"] = *input.Phone
+		fields["phone"] = *input.Phone
 		update = true
 	}
-	if input.Token != nil && *input.Token != "" {
-		fields["last"] = *input.Token
+	if &input.IDPublic != nil && input.IDPublic != "" {
+		fields["id_public"] = input.IDPublic
 		update = true
 	}
 	if input.Img != nil && *input.Img != "" {
-		fields["last"] = *input.Img
+		fields["img"] = *input.Img
 		update = true
 	}
 	if input.Email != nil && *input.Email != "" {
 		fields["email"] = *input.Email
+		update = true
+	}
+	if input.Email != nil && *input.Email != "" {
+		fields["profile_type"] = *input.Email
 		update = true
 	}
 
@@ -86,12 +89,13 @@ func (r *mutationResolver) UpdateProfile(ctx context.Context, input UpdateProfil
 		return &Profile{}, errors.New("no fields present for updating data")
 	}
 
-	err := r.profiles.UpdateId(bson.ObjectIdHex(input.ID), fields)
+	err := r.profiles.Update(bson.M{"id_public": input.IDPublic}, fields)
 	if err != nil {
+		fmt.Print("errorr", input.IDPublic)
 		return &Profile{}, err
 	}
 
-	err = r.profiles.Find(bson.M{"_id": bson.ObjectIdHex(input.ID)}).One(&user)
+	err = r.profiles.Find(bson.M{"id_public": input.IDPublic}).One(&user)
 	if err != nil {
 		return &Profile{}, err
 	}
