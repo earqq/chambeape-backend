@@ -12,22 +12,21 @@ import (
 
 type Resolver struct {
 	profiles *mgo.Collection
+	jobs     *mgo.Collection
 }
 
 func New() Config {
 	return Config{
 		Resolvers: &Resolver{
 			profiles: db.GetCollection("profiles"),
+			jobs:     db.GetCollection("jobs"),
 		},
 	}
 }
-
 func (r *Resolver) Mutation() MutationResolver {
-	r.profiles = db.GetCollection("profiles")
 	return &mutationResolver{r}
 }
 func (r *Resolver) Query() QueryResolver {
-	r.profiles = db.GetCollection("profiles")
 	return &queryResolver{r}
 }
 
@@ -107,6 +106,85 @@ func (r *mutationResolver) UpdateProfile(ctx context.Context, input UpdateProfil
 	return &user, nil
 }
 
+func (r *mutationResolver) CreateJob(ctx context.Context, input NewJob) (*Job, error) {
+	var job Job
+	count, err := r.jobs.Find(bson.M{"id_public": input.IDPublic}).Count()
+	if err != nil {
+		return &Job{}, err
+	} else if count > 0 {
+		return &Job{}, errors.New("user with that id public already exists")
+	}
+	err = r.jobs.Insert(bson.M{"title": input.Title,
+		"end_date":  input.EndDate,
+		"job_type":  input.JobType,
+		"id_public": input.IDPublic,
+		"owner":     input.Owner,
+		"price":     input.Price,
+		"location":  input.Location,
+		"tasks":     input.Tasks})
+	err = r.jobs.Find(bson.M{"id_public": input.IDPublic}).One(&job)
+	if err != nil {
+		return &Job{}, err
+	}
+
+	return &job, nil
+}
+func (r *mutationResolver) UpdateJob(ctx context.Context, input UpdateJob) (*Job, error) {
+	var fields = bson.M{}
+	var job Job
+
+	update := false
+
+	if &input.Title != nil && input.Title != "" {
+		fields["title"] = input.Title
+		update = true
+	}
+	if &input.Tasks != nil {
+		fields["tasks"] = input.Tasks
+		update = true
+	}
+	if &input.IDPublic != nil && input.IDPublic != "" {
+		fields["id_public"] = input.IDPublic
+		update = true
+	}
+	if &input.JobType != nil {
+		fields["job_type"] = input.JobType
+		update = true
+	}
+	if &input.EndDate != nil && input.EndDate != "" {
+		fields["end_date"] = input.EndDate
+		update = true
+	}
+	if &input.Location != nil {
+		fields["location"] = input.Location
+		update = true
+	}
+	if &input.Price != nil {
+		fields["price"] = input.Price
+		update = true
+	}
+	if &input.Owner != nil {
+		fields["owner"] = input.Owner
+		update = true
+	}
+	if !update {
+		return &Job{}, errors.New("no fields present for updating data")
+	}
+
+	err := r.jobs.Update(bson.M{"id_public": input.IDPublic}, fields)
+	if err != nil {
+		fmt.Print("errorr", input.IDPublic)
+		return &Job{}, err
+	}
+
+	err = r.jobs.Find(bson.M{"id_public": input.IDPublic}).One(&job)
+	if err != nil {
+		return &Job{}, err
+	}
+	job.ID = bson.ObjectId(job.ID).Hex()
+	return &job, nil
+}
+
 type queryResolver struct{ *Resolver }
 
 func (r *queryResolver) Profile(ctx context.Context, public_id string) (*Profile, error) {
@@ -124,4 +202,20 @@ func (r *queryResolver) Profiles(ctx context.Context) ([]*Profile, error) {
 	r.profiles.Find(bson.M{}).All(&profiles)
 	fmt.Print(profiles)
 	return profiles, nil
+}
+
+func (r *queryResolver) Job(ctx context.Context, id_public string) (*Job, error) {
+	var job Job
+
+	if err := r.profiles.Find(bson.M{"id_public": id_public}).One(&job); err != nil {
+		return &Job{}, err
+	}
+	job.ID = bson.ObjectId(job.ID).Hex()
+
+	return &job, nil
+}
+func (r *queryResolver) Jobs(ctx context.Context) ([]*Job, error) {
+	var jobs []*Job
+	r.jobs.Find(bson.M{}).All(&jobs)
+	return jobs, nil
 }

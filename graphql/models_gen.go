@@ -2,6 +2,51 @@
 
 package graphql
 
+type AddLocation struct {
+	Latitude  string `json:"latitude"`
+	Longitude string `json:"longitude"`
+}
+
+type Job struct {
+	ID       string   `json:"id"`
+	Title    string   `json:"title"`
+	Tasks    []Task   `json:"tasks"`
+	IDPublic string   `json:"id_public" bson:"id_public"`
+	EndDate  string   `json:"end_date" bson:"end_date"`
+	JobType  int      `json:"job_type" bson:"job_type"`
+	Price    float64  `json:"price" bson:"price"`
+	Location Location `json:"location"`
+	Owner    JobOwner `json:"owner"`
+}
+
+type JobOwner struct {
+	IDPublic string `json:"id_public" bson:"id_public"`
+	Phone    string `json:"phone"`
+	Img      string `json:"img"`
+}
+
+type Location struct {
+	Latitude  string `json:"latitude"`
+	Longitude string `json:"longitude"`
+}
+
+type NewJob struct {
+	Title    string      `json:"title"`
+	Tasks    []NewTask   `json:"tasks"`
+	EndDate  string      `json:"end_date" bson:"end_date"`
+	IDPublic string      `json:"id_public" bson:"id_public"`
+	JobType  int         `json:"job_type" bson:"job_type"`
+	Price    float64     `json:"price" bson:"price"`
+	Location AddLocation `json:"location"`
+	Owner    NewJobOwner `json:"owner"`
+}
+
+type NewJobOwner struct {
+	IDPublic string `json:"id_public" bson:"id_public"`
+	Phone    string `json:"phone"`
+	Img      string `json:"img"`
+}
+
 type NewProfile struct {
 	Email       string  `json:"email"`
 	Names       string  `json:"names"`
@@ -10,6 +55,10 @@ type NewProfile struct {
 	Phone       *string `json:"phone"`
 	ProfileType int     `json:"profile_type" bson:"profile_type"`
 	Img         *string `json:"img"`
+}
+
+type NewTask struct {
+	Description *string `json:"description"`
 }
 
 type Profile struct {
@@ -21,6 +70,21 @@ type Profile struct {
 	Birthdate   string `json:"birthdate"`
 	Phone       string `json:"phone"`
 	Img         string `json:"img"`
+}
+
+type Task struct {
+	Description string `json:"description"`
+}
+
+type UpdateJob struct {
+	Title    string      `json:"title"`
+	IDPublic string      `json:"id_public" bson:"id_public"`
+	Tasks    []NewTask   `json:"tasks"`
+	EndDate  string      `json:"end_date" bson:"end_date"`
+	JobType  int         `json:"job_type" bson:"job_type"`
+	Price    float64     `json:"price" bson:"price"`
+	Location AddLocation `json:"location"`
+	Owner    NewJobOwner `json:"owner"`
 }
 
 type UpdateProfile struct {

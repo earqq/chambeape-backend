@@ -6,10 +6,14 @@ schema {
 type Query {
     profile(id_public: String!): Profile!
     profiles: [Profile]!
+    job(id:ID!): Job!
+    jobs: [Job]!
 }
 type Mutation {
     createProfile(input: NewProfile!): Profile!
     updateProfile(input: UpdateProfile!): Profile!
+    createJob(input: NewJob!): Job!
+    updateJob(input: UpdateJob!): Job!
 }
 type Profile {
     id: ID!
@@ -19,9 +23,61 @@ type Profile {
     email: String!
     birthdate: String!
     phone: String!
-    img: String!
+    img: String!    
 }
+type Task{
+    description:String!
+}
+type JobOwner{
+    id_public:String!
+    phone:String!
+    img:String!
+}
+type Location {
+	Latitude:String!
+	Longitude:String!
+}
+type Job {
+    id: ID!
+    title: String!
+    tasks: [Task!]
+    id_public:String!
+    end_date: String!
+    job_type: Int!
+    price:Float!
+    location:Location!
+    owner:JobOwner!
 
+}
+input NewJobOwner{
+    id_public:String!
+    phone:String!
+    img:String!
+}
+input AddLocation {
+	latitude:String!
+	longitude:String!
+}
+input NewJob {
+    title: String!
+    tasks: [NewTask!]
+    end_date: String!
+    id_public:String!
+    job_type: Int!
+    price: Float!
+    location:AddLocation!
+    owner:NewJobOwner!
+}
+input UpdateJob {
+    title: String!
+    id_public:String!
+    tasks: [NewTask!]!
+    end_date: String!
+    job_type: Int!
+    price: Float!
+    location:AddLocation!
+    owner:NewJobOwner!
+}
 input NewProfile {
     email: String!
     names: String!  
@@ -40,4 +96,7 @@ input UpdateProfile {
     birthdate: String!
     phone: String!
     profile_type: Int!
+}
+input NewTask{
+    description: String
 }
