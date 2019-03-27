@@ -120,6 +120,7 @@ func (r *mutationResolver) CreateJob(ctx context.Context, input NewJob) (*Job, e
 		"id_public": input.IDPublic,
 		"owner":     input.Owner,
 		"price":     input.Price,
+		"state":     input.State,
 		"location":  input.Location,
 		"tasks":     input.Tasks})
 	err = r.jobs.Find(bson.M{"id_public": input.IDPublic}).One(&job)
@@ -157,6 +158,10 @@ func (r *mutationResolver) UpdateJob(ctx context.Context, input UpdateJob) (*Job
 	}
 	if &input.Location != nil {
 		fields["location"] = input.Location
+		update = true
+	}
+	if &input.State != nil {
+		fields["state"] = input.State
 		update = true
 	}
 	if &input.Price != nil {
@@ -214,8 +219,29 @@ func (r *queryResolver) Job(ctx context.Context, id_public string) (*Job, error)
 
 	return &job, nil
 }
-func (r *queryResolver) Jobs(ctx context.Context) ([]*Job, error) {
+func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, jobType *int, date *string, state *bool) ([]*Job, error) {
 	var jobs []*Job
-	r.jobs.Find(bson.M{}).All(&jobs)
+	fmt.Print("profile", &profileIDPublic)
+	fmt.Print("jobType", &jobType)
+	var fields = bson.M{}
+	if &jobType != nil {
+		fields["job_type"] = jobType
+	}
+	fmt.Print("si llega aca we 2")
+	if &date != nil {
+		fields["date_end"] = date
+	}
+	fmt.Print("si llega aca we 3")
+	if &state != nil {
+		arr := []*bool{state}
+		fields["state"] = bson.M{"$in": arr}
+	}
+	fmt.Print("si llega aca we 4")
+	if &profileIDPublic != nil {
+		fields["owner.id_public"] = profileIDPublic
+	}
+	fmt.Print("si llega aca we 5")
+	fmt.Print(fields)
+	r.jobs.Find(nil).All(&jobs)
 	return jobs, nil
 }

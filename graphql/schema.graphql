@@ -6,8 +6,8 @@ schema {
 type Query {
     profile(id_public: String!): Profile!
     profiles: [Profile]!
-    job(id:ID!): Job!
-    jobs: [Job]!
+    job(id_public:String!): Job!
+    jobs(profile_id_public:String,job_type:Int,date:String,state:Boolean): [Job]!
 }
 type Mutation {
     createProfile(input: NewProfile!): Profile!
@@ -34,8 +34,14 @@ type JobOwner{
     img:String!
 }
 type Location {
-	Latitude:String!
-	Longitude:String!
+	latitude:String
+	longitude:String
+    postal_code:String
+    route:String
+    locality:String
+    area_level_1:String
+    area_level_2:String
+    country: String
 }
 type Job {
     id: ID!
@@ -45,6 +51,7 @@ type Job {
     end_date: String!
     job_type: Int!
     price:Float!
+    state:Boolean!
     location:Location!
     owner:JobOwner!
 
@@ -55,14 +62,21 @@ input NewJobOwner{
     img:String!
 }
 input AddLocation {
-	latitude:String!
-	longitude:String!
+	latitude:String
+	longitude:String
+    postal_code:String
+    route:String
+    locality:String
+    area_level_1:String
+    area_level_2:String
+    country: String
 }
 input NewJob {
     title: String!
     tasks: [NewTask!]
     end_date: String!
     id_public:String!
+    state:Boolean!
     job_type: Int!
     price: Float!
     location:AddLocation!
@@ -72,6 +86,7 @@ input UpdateJob {
     title: String!
     id_public:String!
     tasks: [NewTask!]!
+    state:Boolean!
     end_date: String!
     job_type: Int!
     price: Float!

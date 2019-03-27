@@ -49,6 +49,7 @@ type ComplexityRoot struct {
 		EndDate  func(childComplexity int) int
 		JobType  func(childComplexity int) int
 		Price    func(childComplexity int) int
+		State    func(childComplexity int) int
 		Location func(childComplexity int) int
 		Owner    func(childComplexity int) int
 	}
@@ -60,8 +61,14 @@ type ComplexityRoot struct {
 	}
 
 	Location struct {
-		Latitude  func(childComplexity int) int
-		Longitude func(childComplexity int) int
+		Latitude   func(childComplexity int) int
+		Longitude  func(childComplexity int) int
+		PostalCode func(childComplexity int) int
+		Route      func(childComplexity int) int
+		Locality   func(childComplexity int) int
+		AreaLevel1 func(childComplexity int) int
+		AreaLevel2 func(childComplexity int) int
+		Country    func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -85,8 +92,8 @@ type ComplexityRoot struct {
 	Query struct {
 		Profile  func(childComplexity int, idPublic string) int
 		Profiles func(childComplexity int) int
-		Job      func(childComplexity int, id string) int
-		Jobs     func(childComplexity int) int
+		Job      func(childComplexity int, idPublic string) int
+		Jobs     func(childComplexity int, profileIDPublic *string, jobType *int, date *string, state *bool) int
 	}
 
 	Task struct {
@@ -103,8 +110,8 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Profile(ctx context.Context, idPublic string) (*Profile, error)
 	Profiles(ctx context.Context) ([]*Profile, error)
-	Job(ctx context.Context, id string) (*Job, error)
-	Jobs(ctx context.Context) ([]*Job, error)
+	Job(ctx context.Context, idPublic string) (*Job, error)
+	Jobs(ctx context.Context, profileIDPublic *string, jobType *int, date *string, state *bool) ([]*Job, error)
 }
 
 type executableSchema struct {
@@ -171,6 +178,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Job.Price(childComplexity), true
 
+	case "Job.State":
+		if e.complexity.Job.State == nil {
+			break
+		}
+
+		return e.complexity.Job.State(childComplexity), true
+
 	case "Job.Location":
 		if e.complexity.Job.Location == nil {
 			break
@@ -219,6 +233,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Location.Longitude(childComplexity), true
+
+	case "Location.PostalCode":
+		if e.complexity.Location.PostalCode == nil {
+			break
+		}
+
+		return e.complexity.Location.PostalCode(childComplexity), true
+
+	case "Location.Route":
+		if e.complexity.Location.Route == nil {
+			break
+		}
+
+		return e.complexity.Location.Route(childComplexity), true
+
+	case "Location.Locality":
+		if e.complexity.Location.Locality == nil {
+			break
+		}
+
+		return e.complexity.Location.Locality(childComplexity), true
+
+	case "Location.AreaLevel1":
+		if e.complexity.Location.AreaLevel1 == nil {
+			break
+		}
+
+		return e.complexity.Location.AreaLevel1(childComplexity), true
+
+	case "Location.AreaLevel2":
+		if e.complexity.Location.AreaLevel2 == nil {
+			break
+		}
+
+		return e.complexity.Location.AreaLevel2(childComplexity), true
+
+	case "Location.Country":
+		if e.complexity.Location.Country == nil {
+			break
+		}
+
+		return e.complexity.Location.Country(childComplexity), true
 
 	case "Mutation.CreateProfile":
 		if e.complexity.Mutation.CreateProfile == nil {
@@ -353,14 +409,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Job(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.Job(childComplexity, args["id_public"].(string)), true
 
 	case "Query.Jobs":
 		if e.complexity.Query.Jobs == nil {
 			break
 		}
 
-		return e.complexity.Query.Jobs(childComplexity), true
+		args, err := ec.field_Query_jobs_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Jobs(childComplexity, args["profile_id_public"].(*string), args["job_type"].(*int), args["date"].(*string), args["state"].(*bool)), true
 
 	case "Task.Description":
 		if e.complexity.Task.Description == nil {
@@ -454,8 +515,8 @@ var parsedSchema = gqlparser.MustLoadSchema(
 type Query {
     profile(id_public: String!): Profile!
     profiles: [Profile]!
-    job(id:ID!): Job!
-    jobs: [Job]!
+    job(id_public:String!): Job!
+    jobs(profile_id_public:String,job_type:Int,date:String,state:Boolean): [Job]!
 }
 type Mutation {
     createProfile(input: NewProfile!): Profile!
@@ -482,8 +543,14 @@ type JobOwner{
     img:String!
 }
 type Location {
-	Latitude:String!
-	Longitude:String!
+	latitude:String
+	longitude:String
+    postal_code:String
+    route:String
+    locality:String
+    area_level_1:String
+    area_level_2:String
+    country: String
 }
 type Job {
     id: ID!
@@ -493,6 +560,7 @@ type Job {
     end_date: String!
     job_type: Int!
     price:Float!
+    state:Boolean!
     location:Location!
     owner:JobOwner!
 
@@ -503,14 +571,21 @@ input NewJobOwner{
     img:String!
 }
 input AddLocation {
-	latitude:String!
-	longitude:String!
+	latitude:String
+	longitude:String
+    postal_code:String
+    route:String
+    locality:String
+    area_level_1:String
+    area_level_2:String
+    country: String
 }
 input NewJob {
     title: String!
     tasks: [NewTask!]
     end_date: String!
     id_public:String!
+    state:Boolean!
     job_type: Int!
     price: Float!
     location:AddLocation!
@@ -520,6 +595,7 @@ input UpdateJob {
     title: String!
     id_public:String!
     tasks: [NewTask!]!
+    state:Boolean!
     end_date: String!
     job_type: Int!
     price: Float!
@@ -628,13 +704,51 @@ func (ec *executionContext) field_Query_job_args(ctx context.Context, rawArgs ma
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+	if tmp, ok := rawArgs["id_public"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
+	args["id_public"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_jobs_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["profile_id_public"]; ok {
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["profile_id_public"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["job_type"]; ok {
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["job_type"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["date"]; ok {
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["date"] = arg2
+	var arg3 *bool
+	if tmp, ok := rawArgs["state"]; ok {
+		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["state"] = arg3
 	return args, nil
 }
 
@@ -863,6 +977,32 @@ func (ec *executionContext) _Job_price(ctx context.Context, field graphql.Collec
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Job_state(ctx context.Context, field graphql.CollectedField, obj *Job) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Job",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.State, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Job_location(ctx context.Context, field graphql.CollectedField, obj *Job) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -993,7 +1133,7 @@ func (ec *executionContext) _JobOwner_img(ctx context.Context, field graphql.Col
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Location_Latitude(ctx context.Context, field graphql.CollectedField, obj *Location) graphql.Marshaler {
+func (ec *executionContext) _Location_latitude(ctx context.Context, field graphql.CollectedField, obj *Location) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -1008,18 +1148,15 @@ func (ec *executionContext) _Location_Latitude(ctx context.Context, field graphq
 		return obj.Latitude, nil
 	})
 	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Location_Longitude(ctx context.Context, field graphql.CollectedField, obj *Location) graphql.Marshaler {
+func (ec *executionContext) _Location_longitude(ctx context.Context, field graphql.CollectedField, obj *Location) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -1034,15 +1171,150 @@ func (ec *executionContext) _Location_Longitude(ctx context.Context, field graph
 		return obj.Longitude, nil
 	})
 	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Location_postal_code(ctx context.Context, field graphql.CollectedField, obj *Location) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Location",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PostalCode, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Location_route(ctx context.Context, field graphql.CollectedField, obj *Location) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Location",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Route, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Location_locality(ctx context.Context, field graphql.CollectedField, obj *Location) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Location",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Locality, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Location_area_level_1(ctx context.Context, field graphql.CollectedField, obj *Location) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Location",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AreaLevel1, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Location_area_level_2(ctx context.Context, field graphql.CollectedField, obj *Location) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Location",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AreaLevel2, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Location_country(ctx context.Context, field graphql.CollectedField, obj *Location) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Location",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Country, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createProfile(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -1463,7 +1735,7 @@ func (ec *executionContext) _Query_job(ctx context.Context, field graphql.Collec
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Job(rctx, args["id"].(string))
+		return ec.resolvers.Query().Job(rctx, args["id_public"].(string))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1486,10 +1758,17 @@ func (ec *executionContext) _Query_jobs(ctx context.Context, field graphql.Colle
 		Args:   nil,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_jobs_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Jobs(rctx)
+		return ec.resolvers.Query().Jobs(rctx, args["profile_id_public"].(*string), args["job_type"].(*int), args["date"].(*string), args["state"].(*bool))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2389,13 +2668,49 @@ func (ec *executionContext) unmarshalInputAddLocation(ctx context.Context, v int
 		switch k {
 		case "latitude":
 			var err error
-			it.Latitude, err = ec.unmarshalNString2string(ctx, v)
+			it.Latitude, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "longitude":
 			var err error
-			it.Longitude, err = ec.unmarshalNString2string(ctx, v)
+			it.Longitude, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "postal_code":
+			var err error
+			it.PostalCode, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "route":
+			var err error
+			it.Route, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "locality":
+			var err error
+			it.Locality, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "area_level_1":
+			var err error
+			it.AreaLevel1, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "area_level_2":
+			var err error
+			it.AreaLevel2, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "country":
+			var err error
+			it.Country, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2432,6 +2747,12 @@ func (ec *executionContext) unmarshalInputNewJob(ctx context.Context, v interfac
 		case "id_public":
 			var err error
 			it.IDPublic, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "state":
+			var err error
+			it.State, err = ec.unmarshalNBoolean2bool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2591,6 +2912,12 @@ func (ec *executionContext) unmarshalInputUpdateJob(ctx context.Context, v inter
 			if err != nil {
 				return it, err
 			}
+		case "state":
+			var err error
+			it.State, err = ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "end_date":
 			var err error
 			it.EndDate, err = ec.unmarshalNString2string(ctx, v)
@@ -2732,6 +3059,11 @@ func (ec *executionContext) _Job(ctx context.Context, sel ast.SelectionSet, obj 
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "state":
+			out.Values[i] = ec._Job_state(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "location":
 			out.Values[i] = ec._Job_location(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -2801,16 +3133,22 @@ func (ec *executionContext) _Location(ctx context.Context, sel ast.SelectionSet,
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Location")
-		case "Latitude":
-			out.Values[i] = ec._Location_Latitude(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
-		case "Longitude":
-			out.Values[i] = ec._Location_Longitude(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
+		case "latitude":
+			out.Values[i] = ec._Location_latitude(ctx, field, obj)
+		case "longitude":
+			out.Values[i] = ec._Location_longitude(ctx, field, obj)
+		case "postal_code":
+			out.Values[i] = ec._Location_postal_code(ctx, field, obj)
+		case "route":
+			out.Values[i] = ec._Location_route(ctx, field, obj)
+		case "locality":
+			out.Values[i] = ec._Location_locality(ctx, field, obj)
+		case "area_level_1":
+			out.Values[i] = ec._Location_area_level_1(ctx, field, obj)
+		case "area_level_2":
+			out.Values[i] = ec._Location_area_level_2(ctx, field, obj)
+		case "country":
+			out.Values[i] = ec._Location_country(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3725,6 +4063,29 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
+}
+
+func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {
+	return graphql.UnmarshalInt(v)
+}
+
+func (ec *executionContext) marshalOInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	return graphql.MarshalInt(v)
+}
+
+func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOInt2int(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec.marshalOInt2int(ctx, sel, *v)
 }
 
 func (ec *executionContext) marshalOJob2tuchambaᚋgraphqlᚐJob(ctx context.Context, sel ast.SelectionSet, v Job) graphql.Marshaler {

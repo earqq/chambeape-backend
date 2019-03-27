@@ -3,8 +3,14 @@
 package graphql
 
 type AddLocation struct {
-	Latitude  string `json:"latitude"`
-	Longitude string `json:"longitude"`
+	Latitude   *string `json:"latitude"`
+	Longitude  *string `json:"longitude"`
+	PostalCode *string `json:"postal_code" bson:"postal_code"`
+	Route      *string `json:"route"`
+	Locality   *string `json:"locality"`
+	AreaLevel1 *string `json:"area_level_1" bson:"area_level_1"`
+	AreaLevel2 *string `json:"area_level_2" bson:"area_level_2"`
+	Country    *string `json:"country"`
 }
 
 type Job struct {
@@ -14,7 +20,8 @@ type Job struct {
 	IDPublic string   `json:"id_public" bson:"id_public"`
 	EndDate  string   `json:"end_date" bson:"end_date"`
 	JobType  int      `json:"job_type" bson:"job_type"`
-	Price    float64  `json:"price" bson:"price"`
+	Price    float64  `json:"price"`
+	State    bool     `json:"state"`
 	Location Location `json:"location"`
 	Owner    JobOwner `json:"owner"`
 }
@@ -26,8 +33,14 @@ type JobOwner struct {
 }
 
 type Location struct {
-	Latitude  string `json:"latitude"`
-	Longitude string `json:"longitude"`
+	Latitude   *string `json:"latitude"`
+	Longitude  *string `json:"longitude"`
+	PostalCode *string `json:"postal_code" bson:"id_public"`
+	Route      *string `json:"route"`
+	Locality   *string `json:"locality"`
+	AreaLevel1 *string `json:"area_level_1" bson:"area_level_1"`
+	AreaLevel2 *string `json:"area_level_2" bson:"area_level_2"`
+	Country    *string `json:"country"`
 }
 
 type NewJob struct {
@@ -35,8 +48,9 @@ type NewJob struct {
 	Tasks    []NewTask   `json:"tasks"`
 	EndDate  string      `json:"end_date" bson:"end_date"`
 	IDPublic string      `json:"id_public" bson:"id_public"`
+	State    bool        `json:"state"`
 	JobType  int         `json:"job_type" bson:"job_type"`
-	Price    float64     `json:"price" bson:"price"`
+	Price    float64     `json:"price"`
 	Location AddLocation `json:"location"`
 	Owner    NewJobOwner `json:"owner"`
 }
@@ -80,9 +94,10 @@ type UpdateJob struct {
 	Title    string      `json:"title"`
 	IDPublic string      `json:"id_public" bson:"id_public"`
 	Tasks    []NewTask   `json:"tasks"`
+	State    bool        `json:"state"`
 	EndDate  string      `json:"end_date" bson:"end_date"`
 	JobType  int         `json:"job_type" bson:"job_type"`
-	Price    float64     `json:"price" bson:"price"`
+	Price    float64     `json:"price"`
 	Location AddLocation `json:"location"`
 	Owner    NewJobOwner `json:"owner"`
 }
