@@ -221,27 +221,20 @@ func (r *queryResolver) Job(ctx context.Context, id_public string) (*Job, error)
 }
 func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, jobType *int, date *string, state *bool) ([]*Job, error) {
 	var jobs []*Job
-	fmt.Print("profile", &profileIDPublic)
-	fmt.Print("jobType", &jobType)
 	var fields = bson.M{}
-	if &jobType != nil {
+	if jobType != nil {
 		fields["job_type"] = jobType
 	}
-	fmt.Print("si llega aca we 2")
-	if &date != nil {
+	if date != nil {
 		fields["date_end"] = date
 	}
-	fmt.Print("si llega aca we 3")
-	if &state != nil {
+	if state != nil {
 		arr := []*bool{state}
 		fields["state"] = bson.M{"$in": arr}
 	}
-	fmt.Print("si llega aca we 4")
-	if &profileIDPublic != nil {
+	if profileIDPublic != nil {
 		fields["owner.id_public"] = profileIDPublic
 	}
-	fmt.Print("si llega aca we 5")
-	fmt.Print(fields)
-	r.jobs.Find(nil).All(&jobs)
+	r.jobs.Find(fields).All(&jobs)
 	return jobs, nil
 }
