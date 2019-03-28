@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 	"tuchamba/db"
 
 	"github.com/globalsign/mgo"
@@ -41,7 +42,14 @@ func (r *mutationResolver) CreateProfile(ctx context.Context, input NewProfile) 
 	} else if count > 0 {
 		return &Profile{}, errors.New("user with that email already exists")
 	}
-	err = r.profiles.Insert(bson.M{"email": input.Email, "birthdate": input.Birthdate, "names": input.Names, "profile_type": input.ProfileType, "id_public": input.IDPublic, "phone": input.Phone, "img": input.Img})
+	err = r.profiles.Insert(bson.M{"email": input.Email,
+		"birthdate":    input.Birthdate,
+		"names":        input.Names,
+		"profile_type": input.ProfileType,
+		"id_public":    input.IDPublic,
+		"phone":        input.Phone,
+		"updated_at":   time.Now().Local(),
+		"img":          input.Img})
 	if err != nil {
 		return &Profile{}, err
 	}
@@ -91,7 +99,7 @@ func (r *mutationResolver) UpdateProfile(ctx context.Context, input UpdateProfil
 	if !update {
 		return &Profile{}, errors.New("no fields present for updating data")
 	}
-
+	fields["updated_at"] = time.Now().Local()
 	err := r.profiles.Update(bson.M{"id_public": input.IDPublic}, fields)
 	if err != nil {
 		fmt.Print("errorr", input.IDPublic)
@@ -115,14 +123,15 @@ func (r *mutationResolver) CreateJob(ctx context.Context, input NewJob) (*Job, e
 		return &Job{}, errors.New("user with that id public already exists")
 	}
 	err = r.jobs.Insert(bson.M{"title": input.Title,
-		"end_date":  input.EndDate,
-		"job_type":  input.JobType,
-		"id_public": input.IDPublic,
-		"owner":     input.Owner,
-		"price":     input.Price,
-		"state":     input.State,
-		"location":  input.Location,
-		"tasks":     input.Tasks})
+		"end_date":   input.EndDate,
+		"job_type":   input.JobType,
+		"id_public":  input.IDPublic,
+		"owner":      input.Owner,
+		"price":      input.Price,
+		"state":      input.State,
+		"location":   input.Location,
+		"updated_at": time.Now().Local(),
+		"tasks":      input.Tasks})
 	err = r.jobs.Find(bson.M{"id_public": input.IDPublic}).One(&job)
 	if err != nil {
 		return &Job{}, err
@@ -175,7 +184,7 @@ func (r *mutationResolver) UpdateJob(ctx context.Context, input UpdateJob) (*Job
 	if !update {
 		return &Job{}, errors.New("no fields present for updating data")
 	}
-
+	fields["updated_at"] = time.Now().Local()
 	err := r.jobs.Update(bson.M{"id_public": input.IDPublic}, fields)
 	if err != nil {
 		fmt.Print("errorr", input.IDPublic)
@@ -235,6 +244,6 @@ func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, jobTy
 	if profileIDPublic != nil {
 		fields["owner.id_public"] = profileIDPublic
 	}
-	r.jobs.Find(fields).All(&jobs)
+	r.jobs.Find(fields).Sort("-updated_at").All(&jobs)
 	return jobs, nil
 }

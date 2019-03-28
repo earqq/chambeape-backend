@@ -2,6 +2,8 @@
 
 package graphql
 
+import "time"
+
 type AddLocation struct {
 	Latitude   *string `json:"latitude"`
 	Longitude  *string `json:"longitude"`
@@ -14,16 +16,17 @@ type AddLocation struct {
 }
 
 type Job struct {
-	ID       string   `json:"id"`
-	Title    string   `json:"title"`
-	Tasks    []Task   `json:"tasks"`
-	IDPublic string   `json:"id_public" bson:"id_public"`
-	EndDate  string   `json:"end_date" bson:"end_date"`
-	JobType  int      `json:"job_type" bson:"job_type"`
-	Price    float64  `json:"price"`
-	State    bool     `json:"state"`
-	Location Location `json:"location"`
-	Owner    JobOwner `json:"owner"`
+	ID        string    `json:"id"`
+	Title     string    `json:"title"`
+	Tasks     []Task    `json:"tasks"`
+	IDPublic  string    `json:"id_public" bson:"id_public"`
+	EndDate   string    `json:"end_date" bson:"end_date"`
+	JobType   int       `json:"job_type" bson:"job_type"`
+	Price     float64   `json:"price"`
+	State     bool      `json:"state"`
+	Location  Location  `json:"location"`
+	Owner     JobOwner  `json:"owner"`
+	UpdatedAt time.Time `json:"updatedAt" bson:"updated_at"`
 }
 
 type JobOwner struct {
@@ -76,14 +79,15 @@ type NewTask struct {
 }
 
 type Profile struct {
-	ID          string `json:"id"`
-	IDPublic    string `json:"id_public" bson:"id_public"`
-	ProfileType int    `json:"profile_type" bson:"profile_type"`
-	Names       string `json:"names"`
-	Email       string `json:"email"`
-	Birthdate   string `json:"birthdate"`
-	Phone       string `json:"phone"`
-	Img         string `json:"img"`
+	ID          string    `json:"id"`
+	IDPublic    string    `json:"id_public" bson:"id_public"`
+	ProfileType int       `json:"profile_type" bson:"profile_type"`
+	Names       string    `json:"names"`
+	Email       string    `json:"email"`
+	Birthdate   string    `json:"birthdate"`
+	Phone       string    `json:"phone"`
+	Img         string    `json:"img"`
+	UpdatedAt   time.Time `json:"updatedAt" bson:"updated_at"`
 }
 
 type Task struct {
