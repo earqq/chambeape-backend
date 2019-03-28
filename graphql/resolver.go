@@ -221,7 +221,7 @@ func (r *queryResolver) Profiles(ctx context.Context) ([]*Profile, error) {
 func (r *queryResolver) Job(ctx context.Context, id_public string) (*Job, error) {
 	var job Job
 
-	if err := r.profiles.Find(bson.M{"id_public": id_public}).One(&job); err != nil {
+	if err := r.jobs.Find(bson.M{"id_public": id_public}).One(&job); err != nil {
 		return &Job{}, err
 	}
 	job.ID = bson.ObjectId(job.ID).Hex()
@@ -235,7 +235,7 @@ func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, jobTy
 		fields["job_type"] = jobType
 	}
 	if date != nil {
-		fields["date_end"] = date
+		fields["end_date"] = date
 	}
 	if state != nil {
 		arr := []*bool{state}
