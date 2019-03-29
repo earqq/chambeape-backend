@@ -56,6 +56,7 @@ type ComplexityRoot struct {
 
 	JobOwner struct {
 		IDPublic func(childComplexity int) int
+		Name     func(childComplexity int) int
 		Phone    func(childComplexity int) int
 		Img      func(childComplexity int) int
 	}
@@ -205,6 +206,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.JobOwner.IDPublic(childComplexity), true
+
+	case "JobOwner.Name":
+		if e.complexity.JobOwner.Name == nil {
+			break
+		}
+
+		return e.complexity.JobOwner.Name(childComplexity), true
 
 	case "JobOwner.Phone":
 		if e.complexity.JobOwner.Phone == nil {
@@ -539,6 +547,7 @@ type Task{
 }
 type JobOwner{
     id_public:String!
+    name:String!
     phone:String!
     img:String!
 }
@@ -567,6 +576,7 @@ type Job {
 }
 input NewJobOwner{
     id_public:String!
+    name:String!
     phone:String!
     img:String!
 }
@@ -1076,6 +1086,32 @@ func (ec *executionContext) _JobOwner_id_public(ctx context.Context, field graph
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.IDPublic, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _JobOwner_name(ctx context.Context, field graphql.CollectedField, obj *JobOwner) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "JobOwner",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2806,6 +2842,12 @@ func (ec *executionContext) unmarshalInputNewJobOwner(ctx context.Context, v int
 			if err != nil {
 				return it, err
 			}
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "phone":
 			var err error
 			it.Phone, err = ec.unmarshalNString2string(ctx, v)
@@ -3106,6 +3148,11 @@ func (ec *executionContext) _JobOwner(ctx context.Context, sel ast.SelectionSet,
 			out.Values[i] = graphql.MarshalString("JobOwner")
 		case "id_public":
 			out.Values[i] = ec._JobOwner_id_public(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "name":
+			out.Values[i] = ec._JobOwner_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}

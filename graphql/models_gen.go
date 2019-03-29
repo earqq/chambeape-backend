@@ -32,6 +32,7 @@ type Job struct {
 type JobOwner struct {
 	IDPublic string `json:"id_public" bson:"id_public"`
 	Phone    string `json:"phone"`
+	Name     string `json:"name"`
 	Img      string `json:"img"`
 }
 
@@ -61,6 +62,7 @@ type NewJob struct {
 type NewJobOwner struct {
 	IDPublic string `json:"id_public" bson:"id_public"`
 	Phone    string `json:"phone"`
+	Name     string `json:"name"`
 	Img      string `json:"img"`
 }
 
