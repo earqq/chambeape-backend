@@ -7,7 +7,7 @@ type Query {
     profile(id_public: String!): Profile!
     profiles: [Profile]!
     job(id_public:String!): Job!
-    jobs(profile_id_public:String,job_type:Int,date:String,state:Boolean): [Job]!
+    jobs(profile_id_public:String,job_type:Int,date:String,state:Boolean,limit:Int!): [Job]!
 }
 type Mutation {
     createProfile(input: NewProfile!): Profile!

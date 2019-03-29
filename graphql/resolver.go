@@ -228,7 +228,7 @@ func (r *queryResolver) Job(ctx context.Context, id_public string) (*Job, error)
 
 	return &job, nil
 }
-func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, jobType *int, date *string, state *bool) ([]*Job, error) {
+func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, jobType *int, date *string, state *bool, limit int) ([]*Job, error) {
 	var jobs []*Job
 	var fields = bson.M{}
 	if jobType != nil {
@@ -244,6 +244,6 @@ func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, jobTy
 	if profileIDPublic != nil {
 		fields["owner.id_public"] = profileIDPublic
 	}
-	r.jobs.Find(fields).Sort("-updated_at").All(&jobs)
+	r.jobs.Find(fields).Limit(limit).Sort("-updated_at").All(&jobs)
 	return jobs, nil
 }
