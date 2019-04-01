@@ -48,6 +48,8 @@ type ComplexityRoot struct {
 		IDPublic func(childComplexity int) int
 		EndDate  func(childComplexity int) int
 		JobType  func(childComplexity int) int
+		Visits   func(childComplexity int) int
+		Calls    func(childComplexity int) int
 		Price    func(childComplexity int) int
 		State    func(childComplexity int) int
 		Location func(childComplexity int) int
@@ -171,6 +173,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Job.JobType(childComplexity), true
+
+	case "Job.Visits":
+		if e.complexity.Job.Visits == nil {
+			break
+		}
+
+		return e.complexity.Job.Visits(childComplexity), true
+
+	case "Job.Calls":
+		if e.complexity.Job.Calls == nil {
+			break
+		}
+
+		return e.complexity.Job.Calls(childComplexity), true
 
 	case "Job.Price":
 		if e.complexity.Job.Price == nil {
@@ -568,6 +584,8 @@ type Job {
     id_public:String!
     end_date: String!
     job_type: Int!
+    visits:Int!
+    calls:Int!
     price:Float!
     state:Boolean!
     location:Location!
@@ -596,6 +614,8 @@ input NewJob {
     end_date: String!
     id_public:String!
     state:Boolean!
+    visits:Int!
+    calls:Int!
     job_type: Int!
     price: Float!
     location:AddLocation!
@@ -608,6 +628,8 @@ input UpdateJob {
     state:Boolean!
     end_date: String!
     job_type: Int!
+    visits:Int!
+    calls:Int!
     price: Float!
     location:AddLocation!
     owner:NewJobOwner!
@@ -956,6 +978,58 @@ func (ec *executionContext) _Job_job_type(ctx context.Context, field graphql.Col
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.JobType, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Job_visits(ctx context.Context, field graphql.CollectedField, obj *Job) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Job",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Visits, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Job_calls(ctx context.Context, field graphql.CollectedField, obj *Job) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Job",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Calls, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2800,6 +2874,18 @@ func (ec *executionContext) unmarshalInputNewJob(ctx context.Context, v interfac
 			if err != nil {
 				return it, err
 			}
+		case "visits":
+			var err error
+			it.Visits, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "calls":
+			var err error
+			it.Calls, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "job_type":
 			var err error
 			it.JobType, err = ec.unmarshalNInt2int(ctx, v)
@@ -2980,6 +3066,18 @@ func (ec *executionContext) unmarshalInputUpdateJob(ctx context.Context, v inter
 			if err != nil {
 				return it, err
 			}
+		case "visits":
+			var err error
+			it.Visits, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "calls":
+			var err error
+			it.Calls, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "price":
 			var err error
 			it.Price, err = ec.unmarshalNFloat2float64(ctx, v)
@@ -3101,6 +3199,16 @@ func (ec *executionContext) _Job(ctx context.Context, sel ast.SelectionSet, obj 
 			}
 		case "job_type":
 			out.Values[i] = ec._Job_job_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "visits":
+			out.Values[i] = ec._Job_visits(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "calls":
+			out.Values[i] = ec._Job_calls(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}

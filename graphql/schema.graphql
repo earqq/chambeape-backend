@@ -51,6 +51,8 @@ type Job {
     id_public:String!
     end_date: String!
     job_type: Int!
+    visits:Int!
+    calls:Int!
     price:Float!
     state:Boolean!
     location:Location!
@@ -79,6 +81,8 @@ input NewJob {
     end_date: String!
     id_public:String!
     state:Boolean!
+    visits:Int!
+    calls:Int!
     job_type: Int!
     price: Float!
     location:AddLocation!
@@ -91,6 +95,8 @@ input UpdateJob {
     state:Boolean!
     end_date: String!
     job_type: Int!
+    visits:Int!
+    calls:Int!
     price: Float!
     location:AddLocation!
     owner:NewJobOwner!

@@ -127,6 +127,8 @@ func (r *mutationResolver) CreateJob(ctx context.Context, input NewJob) (*Job, e
 		"job_type":   input.JobType,
 		"id_public":  input.IDPublic,
 		"owner":      input.Owner,
+		"visits":     input.Visits,
+		"calls":      input.Calls,
 		"price":      input.Price,
 		"state":      input.State,
 		"location":   input.Location,
@@ -151,6 +153,14 @@ func (r *mutationResolver) UpdateJob(ctx context.Context, input UpdateJob) (*Job
 	}
 	if &input.Tasks != nil {
 		fields["tasks"] = input.Tasks
+		update = true
+	}
+	if &input.Calls != nil {
+		fields["calls"] = input.Calls
+		update = true
+	}
+	if &input.Visits != nil {
+		fields["visits"] = input.Visits
 		update = true
 	}
 	if &input.IDPublic != nil && input.IDPublic != "" {
@@ -181,6 +191,7 @@ func (r *mutationResolver) UpdateJob(ctx context.Context, input UpdateJob) (*Job
 		fields["owner"] = input.Owner
 		update = true
 	}
+
 	if !update {
 		return &Job{}, errors.New("no fields present for updating data")
 	}
