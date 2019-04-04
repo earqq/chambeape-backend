@@ -21,6 +21,7 @@ type Profile {
     profile_type: Int!
     names: String!
     email: String!
+    available_posts: Int!
     birthdate: String!
     phone: String!
     img: String!    
@@ -105,6 +106,7 @@ input NewProfile {
     email: String!
     names: String!  
     id_public:String!
+    available_posts: Int!
     birthdate: String
     phone: String
     profile_type: Int!
@@ -116,6 +118,7 @@ input UpdateProfile {
     names: String!
     img: String!
     email: String!
+    available_posts: Int!
     birthdate: String!
     phone: String!
     profile_type: Int!

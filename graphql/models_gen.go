@@ -68,13 +68,14 @@ type NewJobOwner struct {
 }
 
 type NewProfile struct {
-	Email       string  `json:"email"`
-	Names       string  `json:"names"`
-	IDPublic    string  `json:"id_public" bson:"id_public"`
-	Birthdate   *string `json:"birthdate"`
-	Phone       *string `json:"phone"`
-	ProfileType int     `json:"profile_type" bson:"profile_type"`
-	Img         *string `json:"img"`
+	Email          string  `json:"email"`
+	Names          string  `json:"names"`
+	IDPublic       string  `json:"id_public" bson:"id_public"`
+	Birthdate      *string `json:"birthdate"`
+	AvailablePosts int     `json:"available_posts" bson:"available_posts"`
+	Phone          *string `json:"phone"`
+	ProfileType    int     `json:"profile_type" bson:"profile_type"`
+	Img            *string `json:"img"`
 }
 
 type NewTask struct {
@@ -82,14 +83,15 @@ type NewTask struct {
 }
 
 type Profile struct {
-	ID          string `json:"id"`
-	IDPublic    string `json:"id_public" bson:"id_public"`
-	ProfileType int    `json:"profile_type" bson:"profile_type"`
-	Names       string `json:"names"`
-	Email       string `json:"email"`
-	Birthdate   string `json:"birthdate"`
-	Phone       string `json:"phone"`
-	Img         string `json:"img"`
+	ID             string `json:"id"`
+	IDPublic       string `json:"id_public" bson:"id_public"`
+	ProfileType    int    `json:"profile_type" bson:"profile_type"`
+	Names          string `json:"names"`
+	Email          string `json:"email"`
+	Birthdate      string `json:"birthdate"`
+	AvailablePosts int    `json:"available_posts"  bson:"available_posts"`
+	Phone          string `json:"phone"`
+	Img            string `json:"img"`
 }
 
 type Task struct {
@@ -111,11 +113,12 @@ type UpdateJob struct {
 }
 
 type UpdateProfile struct {
-	IDPublic    string `json:"id_public" bson:"id_public"`
-	Names       string `json:"names"`
-	Img         string `json:"img"`
-	Email       string `json:"email"`
-	Birthdate   string `json:"birthdate"`
-	Phone       string `json:"phone"`
-	ProfileType int    `json:"profile_type" bson:"profile_type"`
+	IDPublic       string `json:"id_public" bson:"id_public"`
+	Names          string `json:"names"`
+	Img            string `json:"img"`
+	Email          string `json:"email"`
+	Birthdate      string `json:"birthdate"`
+	AvailablePosts int    `json:"available_posts"  bson:"available_posts"`
+	Phone          string `json:"phone"`
+	ProfileType    int    `json:"profile_type" bson:"profile_type"`
 }

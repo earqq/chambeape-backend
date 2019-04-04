@@ -82,14 +82,15 @@ type ComplexityRoot struct {
 	}
 
 	Profile struct {
-		ID          func(childComplexity int) int
-		IDPublic    func(childComplexity int) int
-		ProfileType func(childComplexity int) int
-		Names       func(childComplexity int) int
-		Email       func(childComplexity int) int
-		Birthdate   func(childComplexity int) int
-		Phone       func(childComplexity int) int
-		Img         func(childComplexity int) int
+		ID             func(childComplexity int) int
+		IDPublic       func(childComplexity int) int
+		ProfileType    func(childComplexity int) int
+		Names          func(childComplexity int) int
+		Email          func(childComplexity int) int
+		AvailablePosts func(childComplexity int) int
+		Birthdate      func(childComplexity int) int
+		Phone          func(childComplexity int) int
+		Img            func(childComplexity int) int
 	}
 
 	Query struct {
@@ -383,6 +384,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Profile.Email(childComplexity), true
 
+	case "Profile.AvailablePosts":
+		if e.complexity.Profile.AvailablePosts == nil {
+			break
+		}
+
+		return e.complexity.Profile.AvailablePosts(childComplexity), true
+
 	case "Profile.Birthdate":
 		if e.complexity.Profile.Birthdate == nil {
 			break
@@ -554,6 +562,7 @@ type Profile {
     profile_type: Int!
     names: String!
     email: String!
+    available_posts: Int!
     birthdate: String!
     phone: String!
     img: String!    
@@ -638,6 +647,7 @@ input NewProfile {
     email: String!
     names: String!  
     id_public:String!
+    available_posts: Int!
     birthdate: String
     phone: String
     profile_type: Int!
@@ -649,6 +659,7 @@ input UpdateProfile {
     names: String!
     img: String!
     email: String!
+    available_posts: Int!
     birthdate: String!
     phone: String!
     profile_type: Int!
@@ -1695,6 +1706,32 @@ func (ec *executionContext) _Profile_email(ctx context.Context, field graphql.Co
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Profile_available_posts(ctx context.Context, field graphql.CollectedField, obj *Profile) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Profile",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AvailablePosts, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Profile_birthdate(ctx context.Context, field graphql.CollectedField, obj *Profile) graphql.Marshaler {
@@ -2976,6 +3013,12 @@ func (ec *executionContext) unmarshalInputNewProfile(ctx context.Context, v inte
 			if err != nil {
 				return it, err
 			}
+		case "available_posts":
+			var err error
+			it.AvailablePosts, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "birthdate":
 			var err error
 			it.Birthdate, err = ec.unmarshalOString2ᚖstring(ctx, v)
@@ -3129,6 +3172,12 @@ func (ec *executionContext) unmarshalInputUpdateProfile(ctx context.Context, v i
 		case "email":
 			var err error
 			it.Email, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "available_posts":
+			var err error
+			it.AvailablePosts, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3402,6 +3451,11 @@ func (ec *executionContext) _Profile(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "email":
 			out.Values[i] = ec._Profile_email(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "available_posts":
+			out.Values[i] = ec._Profile_available_posts(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}

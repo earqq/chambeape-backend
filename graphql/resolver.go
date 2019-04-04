@@ -43,13 +43,14 @@ func (r *mutationResolver) CreateProfile(ctx context.Context, input NewProfile) 
 		return &Profile{}, errors.New("user with that email already exists")
 	}
 	err = r.profiles.Insert(bson.M{"email": input.Email,
-		"birthdate":    input.Birthdate,
-		"names":        input.Names,
-		"profile_type": input.ProfileType,
-		"id_public":    input.IDPublic,
-		"phone":        input.Phone,
-		"updated_at":   time.Now().Local(),
-		"img":          input.Img})
+		"birthdate":       input.Birthdate,
+		"names":           input.Names,
+		"profile_type":    input.ProfileType,
+		"id_public":       input.IDPublic,
+		"phone":           input.Phone,
+		"available_posts": input.AvailablePosts,
+		"updated_at":      time.Now().Local(),
+		"img":             input.Img})
 	if err != nil {
 		return &Profile{}, err
 	}
@@ -95,7 +96,10 @@ func (r *mutationResolver) UpdateProfile(ctx context.Context, input UpdateProfil
 		fields["profile_type"] = input.ProfileType
 		update = true
 	}
-
+	if &input.AvailablePosts != nil {
+		fields["available_posts"] = input.AvailablePosts
+		update = true
+	}
 	if !update {
 		return &Profile{}, errors.New("no fields present for updating data")
 	}
