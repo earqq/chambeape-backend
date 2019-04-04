@@ -647,7 +647,6 @@ input NewProfile {
     email: String!
     names: String!  
     id_public:String!
-    available_posts: Int!
     birthdate: String
     phone: String
     profile_type: Int!
@@ -3010,12 +3009,6 @@ func (ec *executionContext) unmarshalInputNewProfile(ctx context.Context, v inte
 		case "id_public":
 			var err error
 			it.IDPublic, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "available_posts":
-			var err error
-			it.AvailablePosts, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}

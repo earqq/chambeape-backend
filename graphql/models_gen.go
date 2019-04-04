@@ -68,14 +68,13 @@ type NewJobOwner struct {
 }
 
 type NewProfile struct {
-	Email          string  `json:"email"`
-	Names          string  `json:"names"`
-	IDPublic       string  `json:"id_public" bson:"id_public"`
-	Birthdate      *string `json:"birthdate"`
-	AvailablePosts int     `json:"available_posts" bson:"available_posts"`
-	Phone          *string `json:"phone"`
-	ProfileType    int     `json:"profile_type" bson:"profile_type"`
-	Img            *string `json:"img"`
+	Email       string  `json:"email"`
+	Names       string  `json:"names"`
+	IDPublic    string  `json:"id_public" bson:"id_public"`
+	Birthdate   *string `json:"birthdate"`
+	Phone       *string `json:"phone"`
+	ProfileType int     `json:"profile_type" bson:"profile_type"`
+	Img         *string `json:"img"`
 }
 
 type NewTask struct {

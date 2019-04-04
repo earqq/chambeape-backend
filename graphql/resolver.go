@@ -48,7 +48,7 @@ func (r *mutationResolver) CreateProfile(ctx context.Context, input NewProfile) 
 		"profile_type":    input.ProfileType,
 		"id_public":       input.IDPublic,
 		"phone":           input.Phone,
-		"available_posts": input.AvailablePosts,
+		"available_posts": 2,
 		"updated_at":      time.Now().Local(),
 		"img":             input.Img})
 	if err != nil {

@@ -106,7 +106,6 @@ input NewProfile {
     email: String!
     names: String!  
     id_public:String!
-    available_posts: Int!
     birthdate: String
     phone: String
     profile_type: Int!
