@@ -90,17 +90,17 @@ input NewJob {
     owner:NewJobOwner!
 }
 input UpdateJob {
-    title: String!
+    title: String
     id_public:String!
-    tasks: [NewTask!]!
-    state:Boolean!
-    end_date: String!
-    job_type: Int!
-    visits:Int!
-    calls:Int!
-    price: Float!
-    location:AddLocation!
-    owner:NewJobOwner!
+    tasks: [NewTask]
+    state:Boolean
+    end_date: String
+    job_type: Int
+    visits:Int
+    calls:Int
+    price: Float
+    location:AddLocation
+    owner:NewJobOwner
 }
 input NewProfile {
     email: String!
@@ -114,13 +114,13 @@ input NewProfile {
 
 input UpdateProfile {
     id_public: String!
-    names: String!
-    img: String!
-    email: String!
-    available_posts: Int!
-    birthdate: String!
-    phone: String!
-    profile_type: Int!
+    names: String
+    img: String
+    email: String
+    available_posts: Int
+    birthdate: String
+    phone: String
+    profile_type: Int
 }
 input NewTask{
     description: String

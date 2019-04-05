@@ -68,43 +68,43 @@ func (r *mutationResolver) UpdateProfile(ctx context.Context, input UpdateProfil
 
 	update := false
 
-	if &input.Names != nil && input.Names != "" {
-		fields["names"] = input.Names
+	if input.Names != nil && *input.Names != "" {
+		fields["names"] = *input.Names
 		update = true
 	}
-	if &input.Phone != nil && input.Phone != "" {
-		fields["phone"] = input.Phone
+	if input.Phone != nil && *input.Phone != "" {
+		fields["phone"] = *input.Phone
 		update = true
 	}
 	if &input.IDPublic != nil && input.IDPublic != "" {
 		fields["id_public"] = input.IDPublic
 		update = true
 	}
-	if &input.Img != nil && input.Img != "" {
-		fields["img"] = input.Img
+	if input.Img != nil && *input.Img != "" {
+		fields["img"] = *input.Img
 		update = true
 	}
-	if &input.Email != nil && input.Email != "" {
-		fields["email"] = input.Email
+	if input.Email != nil && *input.Email != "" {
+		fields["email"] = *input.Email
 		update = true
 	}
-	if &input.Birthdate != nil && input.Birthdate != "" {
-		fields["birthdate"] = input.Birthdate
+	if input.Birthdate != nil && *input.Birthdate != "" {
+		fields["birthdate"] = *input.Birthdate
 		update = true
 	}
-	if &input.ProfileType != nil {
-		fields["profile_type"] = input.ProfileType
+	if input.ProfileType != nil {
+		fields["profile_type"] = *input.ProfileType
 		update = true
 	}
-	if &input.AvailablePosts != nil {
-		fields["available_posts"] = input.AvailablePosts
+	if input.AvailablePosts != nil {
+		fields["available_posts"] = *input.AvailablePosts
 		update = true
 	}
 	if !update {
 		return &Profile{}, errors.New("no fields present for updating data")
 	}
 	fields["updated_at"] = time.Now().Local()
-	err := r.profiles.Update(bson.M{"id_public": input.IDPublic}, fields)
+	err := r.profiles.Update(bson.M{"id_public": input.IDPublic}, bson.M{"$set": fields})
 	if err != nil {
 		fmt.Print("errorr", input.IDPublic)
 		return &Profile{}, err
@@ -151,48 +151,48 @@ func (r *mutationResolver) UpdateJob(ctx context.Context, input UpdateJob) (*Job
 
 	update := false
 
-	if &input.Title != nil && input.Title != "" {
-		fields["title"] = input.Title
+	if input.Title != nil && *input.Title != "" {
+		fields["title"] = *input.Title
 		update = true
 	}
-	if &input.Tasks != nil {
+	if input.Tasks != nil {
 		fields["tasks"] = input.Tasks
 		update = true
 	}
-	if &input.Calls != nil {
-		fields["calls"] = input.Calls
+	if input.Calls != nil {
+		fields["calls"] = *input.Calls
 		update = true
 	}
-	if &input.Visits != nil {
-		fields["visits"] = input.Visits
+	if input.Visits != nil {
+		fields["visits"] = *input.Visits
 		update = true
 	}
 	if &input.IDPublic != nil && input.IDPublic != "" {
 		fields["id_public"] = input.IDPublic
 		update = true
 	}
-	if &input.JobType != nil {
-		fields["job_type"] = input.JobType
+	if input.JobType != nil {
+		fields["job_type"] = *input.JobType
 		update = true
 	}
-	if &input.EndDate != nil && input.EndDate != "" {
-		fields["end_date"] = input.EndDate
+	if input.EndDate != nil && *input.EndDate != "" {
+		fields["end_date"] = *input.EndDate
 		update = true
 	}
-	if &input.Location != nil {
-		fields["location"] = input.Location
+	if input.Location != nil {
+		fields["location"] = *input.Location
 		update = true
 	}
-	if &input.State != nil {
-		fields["state"] = input.State
+	if input.State != nil {
+		fields["state"] = *input.State
 		update = true
 	}
-	if &input.Price != nil {
-		fields["price"] = input.Price
+	if input.Price != nil {
+		fields["price"] = *input.Price
 		update = true
 	}
-	if &input.Owner != nil {
-		fields["owner"] = input.Owner
+	if input.Owner != nil {
+		fields["owner"] = *input.Owner
 		update = true
 	}
 
@@ -200,7 +200,7 @@ func (r *mutationResolver) UpdateJob(ctx context.Context, input UpdateJob) (*Job
 		return &Job{}, errors.New("no fields present for updating data")
 	}
 	fields["updated_at"] = time.Now().Local()
-	err := r.jobs.Update(bson.M{"id_public": input.IDPublic}, fields)
+	err := r.jobs.Update(bson.M{"id_public": input.IDPublic}, bson.M{"$set": fields})
 	if err != nil {
 		fmt.Print("errorr", input.IDPublic)
 		return &Job{}, err

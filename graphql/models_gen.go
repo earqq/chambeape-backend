@@ -98,26 +98,26 @@ type Task struct {
 }
 
 type UpdateJob struct {
-	Title    string      `json:"title"`
-	IDPublic string      `json:"id_public" bson:"id_public"`
-	Tasks    []NewTask   `json:"tasks"`
-	State    bool        `json:"state"`
-	EndDate  string      `json:"end_date" bson:"end_date"`
-	JobType  int         `json:"job_type" bson:"job_type"`
-	Visits   int         `json:"visits"`
-	Calls    int         `json:"calls"`
-	Price    float64     `json:"price"`
-	Location AddLocation `json:"location"`
-	Owner    NewJobOwner `json:"owner"`
+	Title    *string      `json:"title"`
+	IDPublic string       `json:"id_public" bson:"id_public"`
+	Tasks    []*NewTask   `json:"tasks"`
+	State    *bool        `json:"state"`
+	EndDate  *string      `json:"end_date" bson:"end_date"`
+	JobType  *int         `json:"job_type" bson:"job_type"`
+	Visits   *int         `json:"visits"`
+	Calls    *int         `json:"calls"`
+	Price    *float64     `json:"price"`
+	Location *AddLocation `json:"location"`
+	Owner    *NewJobOwner `json:"owner"`
 }
 
 type UpdateProfile struct {
-	IDPublic       string `json:"id_public" bson:"id_public"`
-	Names          string `json:"names"`
-	Img            string `json:"img"`
-	Email          string `json:"email"`
-	Birthdate      string `json:"birthdate"`
-	AvailablePosts int    `json:"available_posts"  bson:"available_posts"`
-	Phone          string `json:"phone"`
-	ProfileType    int    `json:"profile_type" bson:"profile_type"`
+	IDPublic       string  `json:"id_public" bson:"id_public"`
+	Names          *string `json:"names"`
+	Img            *string `json:"img"`
+	Email          *string `json:"email"`
+	Birthdate      *string `json:"birthdate"`
+	AvailablePosts *int    `json:"available_posts"  bson:"available_posts"`
+	Phone          *string `json:"phone"`
+	ProfileType    *int    `json:"profile_type" bson:"profile_type"`
 }

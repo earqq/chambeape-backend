@@ -631,17 +631,17 @@ input NewJob {
     owner:NewJobOwner!
 }
 input UpdateJob {
-    title: String!
+    title: String
     id_public:String!
-    tasks: [NewTask!]!
-    state:Boolean!
-    end_date: String!
-    job_type: Int!
-    visits:Int!
-    calls:Int!
-    price: Float!
-    location:AddLocation!
-    owner:NewJobOwner!
+    tasks: [NewTask]
+    state:Boolean
+    end_date: String
+    job_type: Int
+    visits:Int
+    calls:Int
+    price: Float
+    location:AddLocation
+    owner:NewJobOwner
 }
 input NewProfile {
     email: String!
@@ -655,13 +655,13 @@ input NewProfile {
 
 input UpdateProfile {
     id_public: String!
-    names: String!
-    img: String!
-    email: String!
-    available_posts: Int!
-    birthdate: String!
-    phone: String!
-    profile_type: Int!
+    names: String
+    img: String
+    email: String
+    available_posts: Int
+    birthdate: String
+    phone: String
+    profile_type: Int
 }
 input NewTask{
     description: String
@@ -3068,7 +3068,7 @@ func (ec *executionContext) unmarshalInputUpdateJob(ctx context.Context, v inter
 		switch k {
 		case "title":
 			var err error
-			it.Title, err = ec.unmarshalNString2string(ctx, v)
+			it.Title, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3080,55 +3080,55 @@ func (ec *executionContext) unmarshalInputUpdateJob(ctx context.Context, v inter
 			}
 		case "tasks":
 			var err error
-			it.Tasks, err = ec.unmarshalNNewTask2ᚕtuchambaᚋgraphqlᚐNewTask(ctx, v)
+			it.Tasks, err = ec.unmarshalONewTask2ᚕᚖtuchambaᚋgraphqlᚐNewTask(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "state":
 			var err error
-			it.State, err = ec.unmarshalNBoolean2bool(ctx, v)
+			it.State, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "end_date":
 			var err error
-			it.EndDate, err = ec.unmarshalNString2string(ctx, v)
+			it.EndDate, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "job_type":
 			var err error
-			it.JobType, err = ec.unmarshalNInt2int(ctx, v)
+			it.JobType, err = ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "visits":
 			var err error
-			it.Visits, err = ec.unmarshalNInt2int(ctx, v)
+			it.Visits, err = ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "calls":
 			var err error
-			it.Calls, err = ec.unmarshalNInt2int(ctx, v)
+			it.Calls, err = ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "price":
 			var err error
-			it.Price, err = ec.unmarshalNFloat2float64(ctx, v)
+			it.Price, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "location":
 			var err error
-			it.Location, err = ec.unmarshalNAddLocation2tuchambaᚋgraphqlᚐAddLocation(ctx, v)
+			it.Location, err = ec.unmarshalOAddLocation2ᚖtuchambaᚋgraphqlᚐAddLocation(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "owner":
 			var err error
-			it.Owner, err = ec.unmarshalNNewJobOwner2tuchambaᚋgraphqlᚐNewJobOwner(ctx, v)
+			it.Owner, err = ec.unmarshalONewJobOwner2ᚖtuchambaᚋgraphqlᚐNewJobOwner(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3152,43 +3152,43 @@ func (ec *executionContext) unmarshalInputUpdateProfile(ctx context.Context, v i
 			}
 		case "names":
 			var err error
-			it.Names, err = ec.unmarshalNString2string(ctx, v)
+			it.Names, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "img":
 			var err error
-			it.Img, err = ec.unmarshalNString2string(ctx, v)
+			it.Img, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "email":
 			var err error
-			it.Email, err = ec.unmarshalNString2string(ctx, v)
+			it.Email, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "available_posts":
 			var err error
-			it.AvailablePosts, err = ec.unmarshalNInt2int(ctx, v)
+			it.AvailablePosts, err = ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "birthdate":
 			var err error
-			it.Birthdate, err = ec.unmarshalNString2string(ctx, v)
+			it.Birthdate, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "phone":
 			var err error
-			it.Phone, err = ec.unmarshalNString2string(ctx, v)
+			it.Phone, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "profile_type":
 			var err error
-			it.ProfileType, err = ec.unmarshalNInt2int(ctx, v)
+			it.ProfileType, err = ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3947,26 +3947,6 @@ func (ec *executionContext) unmarshalNNewTask2tuchambaᚋgraphqlᚐNewTask(ctx c
 	return ec.unmarshalInputNewTask(ctx, v)
 }
 
-func (ec *executionContext) unmarshalNNewTask2ᚕtuchambaᚋgraphqlᚐNewTask(ctx context.Context, v interface{}) ([]NewTask, error) {
-	var vSlice []interface{}
-	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
-	}
-	var err error
-	res := make([]NewTask, len(vSlice))
-	for i := range vSlice {
-		res[i], err = ec.unmarshalNNewTask2tuchambaᚋgraphqlᚐNewTask(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
 func (ec *executionContext) marshalNProfile2tuchambaᚋgraphqlᚐProfile(ctx context.Context, sel ast.SelectionSet, v Profile) graphql.Marshaler {
 	return ec._Profile(ctx, sel, &v)
 }
@@ -4252,6 +4232,18 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return graphql.MarshalString(v)
 }
 
+func (ec *executionContext) unmarshalOAddLocation2tuchambaᚋgraphqlᚐAddLocation(ctx context.Context, v interface{}) (AddLocation, error) {
+	return ec.unmarshalInputAddLocation(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOAddLocation2ᚖtuchambaᚋgraphqlᚐAddLocation(ctx context.Context, v interface{}) (*AddLocation, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOAddLocation2tuchambaᚋgraphqlᚐAddLocation(ctx, v)
+	return &res, err
+}
+
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	return graphql.UnmarshalBoolean(v)
 }
@@ -4273,6 +4265,29 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
+}
+
+func (ec *executionContext) unmarshalOFloat2float64(ctx context.Context, v interface{}) (float64, error) {
+	return graphql.UnmarshalFloat(v)
+}
+
+func (ec *executionContext) marshalOFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
+	return graphql.MarshalFloat(v)
+}
+
+func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOFloat2float64(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel ast.SelectionSet, v *float64) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec.marshalOFloat2float64(ctx, sel, *v)
 }
 
 func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {
@@ -4309,6 +4324,22 @@ func (ec *executionContext) marshalOJob2ᚖtuchambaᚋgraphqlᚐJob(ctx context.
 	return ec._Job(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalONewJobOwner2tuchambaᚋgraphqlᚐNewJobOwner(ctx context.Context, v interface{}) (NewJobOwner, error) {
+	return ec.unmarshalInputNewJobOwner(ctx, v)
+}
+
+func (ec *executionContext) unmarshalONewJobOwner2ᚖtuchambaᚋgraphqlᚐNewJobOwner(ctx context.Context, v interface{}) (*NewJobOwner, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalONewJobOwner2tuchambaᚋgraphqlᚐNewJobOwner(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) unmarshalONewTask2tuchambaᚋgraphqlᚐNewTask(ctx context.Context, v interface{}) (NewTask, error) {
+	return ec.unmarshalInputNewTask(ctx, v)
+}
+
 func (ec *executionContext) unmarshalONewTask2ᚕtuchambaᚋgraphqlᚐNewTask(ctx context.Context, v interface{}) ([]NewTask, error) {
 	var vSlice []interface{}
 	if v != nil {
@@ -4327,6 +4358,34 @@ func (ec *executionContext) unmarshalONewTask2ᚕtuchambaᚋgraphqlᚐNewTask(ct
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) unmarshalONewTask2ᚕᚖtuchambaᚋgraphqlᚐNewTask(ctx context.Context, v interface{}) ([]*NewTask, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*NewTask, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalONewTask2ᚖtuchambaᚋgraphqlᚐNewTask(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalONewTask2ᚖtuchambaᚋgraphqlᚐNewTask(ctx context.Context, v interface{}) (*NewTask, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalONewTask2tuchambaᚋgraphqlᚐNewTask(ctx, v)
+	return &res, err
 }
 
 func (ec *executionContext) marshalOProfile2tuchambaᚋgraphqlᚐProfile(ctx context.Context, sel ast.SelectionSet, v Profile) graphql.Marshaler {
