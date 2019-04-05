@@ -243,7 +243,7 @@ func (r *queryResolver) Job(ctx context.Context, id_public string) (*Job, error)
 
 	return &job, nil
 }
-func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, jobType *int, date *string, state *bool, title *string, limit int) ([]*Job, error) {
+func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, jobType *int, date *string, state *bool, title *string, location *string, limit int) ([]*Job, error) {
 	var jobs []*Job
 	var fields = bson.M{}
 	if jobType != nil {
@@ -258,6 +258,11 @@ func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, jobTy
 	}
 	if title != nil {
 		fields["title"] = bson.M{"$regex": *title}
+	}
+	if location != nil {
+		fields["$or"] = []bson.M{bson.M{"location.locality": bson.M{"$regex": *location}},
+			bson.M{"location.area_level_1": bson.M{"$regex": *location}},
+			bson.M{"location.area_level_2": bson.M{"$regex": *location}}}
 	}
 	if profileIDPublic != nil {
 		fields["owner.id_public"] = profileIDPublic
