@@ -97,7 +97,7 @@ type ComplexityRoot struct {
 		Profile  func(childComplexity int, idPublic string) int
 		Profiles func(childComplexity int) int
 		Job      func(childComplexity int, idPublic string) int
-		Jobs     func(childComplexity int, profileIDPublic *string, jobType *int, date *string, state *bool, limit int) int
+		Jobs     func(childComplexity int, profileIDPublic *string, jobType *int, date *string, state *bool, title *string, limit int) int
 	}
 
 	Task struct {
@@ -115,7 +115,7 @@ type QueryResolver interface {
 	Profile(ctx context.Context, idPublic string) (*Profile, error)
 	Profiles(ctx context.Context) ([]*Profile, error)
 	Job(ctx context.Context, idPublic string) (*Job, error)
-	Jobs(ctx context.Context, profileIDPublic *string, jobType *int, date *string, state *bool, limit int) ([]*Job, error)
+	Jobs(ctx context.Context, profileIDPublic *string, jobType *int, date *string, state *bool, title *string, limit int) ([]*Job, error)
 }
 
 type executableSchema struct {
@@ -453,7 +453,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Jobs(childComplexity, args["profile_id_public"].(*string), args["job_type"].(*int), args["date"].(*string), args["state"].(*bool), args["limit"].(int)), true
+		return e.complexity.Query.Jobs(childComplexity, args["profile_id_public"].(*string), args["job_type"].(*int), args["date"].(*string), args["state"].(*bool), args["title"].(*string), args["limit"].(int)), true
 
 	case "Task.Description":
 		if e.complexity.Task.Description == nil {
@@ -548,7 +548,7 @@ type Query {
     profile(id_public: String!): Profile!
     profiles: [Profile]!
     job(id_public:String!): Job!
-    jobs(profile_id_public:String,job_type:Int,date:String,state:Boolean,limit:Int!): [Job]!
+    jobs(profile_id_public:String,job_type:Int,date:String,state:Boolean,title:String,limit:Int!): [Job]!
 }
 type Mutation {
     createProfile(input: NewProfile!): Profile!
@@ -791,14 +791,22 @@ func (ec *executionContext) field_Query_jobs_args(ctx context.Context, rawArgs m
 		}
 	}
 	args["state"] = arg3
-	var arg4 int
-	if tmp, ok := rawArgs["limit"]; ok {
-		arg4, err = ec.unmarshalNInt2int(ctx, tmp)
+	var arg4 *string
+	if tmp, ok := rawArgs["title"]; ok {
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit"] = arg4
+	args["title"] = arg4
+	var arg5 int
+	if tmp, ok := rawArgs["limit"]; ok {
+		arg5, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg5
 	return args, nil
 }
 
@@ -1922,7 +1930,7 @@ func (ec *executionContext) _Query_jobs(ctx context.Context, field graphql.Colle
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Jobs(rctx, args["profile_id_public"].(*string), args["job_type"].(*int), args["date"].(*string), args["state"].(*bool), args["limit"].(int))
+		return ec.resolvers.Query().Jobs(rctx, args["profile_id_public"].(*string), args["job_type"].(*int), args["date"].(*string), args["state"].(*bool), args["title"].(*string), args["limit"].(int))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {

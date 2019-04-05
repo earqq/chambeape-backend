@@ -8,7 +8,7 @@ import (
 	"tuchamba/db"
 
 	"github.com/globalsign/mgo"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/globalsign/mgo/bson"
 ) // THIS CODE IS A STARTING POINT ONLY. IT WILL NOT BE UPDATED WITH SCHEMA CHANGES.
 
 type Resolver struct {
@@ -243,7 +243,7 @@ func (r *queryResolver) Job(ctx context.Context, id_public string) (*Job, error)
 
 	return &job, nil
 }
-func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, jobType *int, date *string, state *bool, limit int) ([]*Job, error) {
+func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, jobType *int, date *string, state *bool, title *string, limit int) ([]*Job, error) {
 	var jobs []*Job
 	var fields = bson.M{}
 	if jobType != nil {
@@ -255,6 +255,9 @@ func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, jobTy
 	if state != nil {
 		arr := []*bool{state}
 		fields["state"] = bson.M{"$in": arr}
+	}
+	if title != nil {
+		fields["title"] = bson.M{"$regex": *title}
 	}
 	if profileIDPublic != nil {
 		fields["owner.id_public"] = profileIDPublic
