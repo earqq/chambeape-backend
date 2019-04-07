@@ -87,7 +87,7 @@ type ComplexityRoot struct {
 		ProfileType    func(childComplexity int) int
 		Names          func(childComplexity int) int
 		Email          func(childComplexity int) int
-		AvailablePosts func(childComplexity int) int
+		AvailableWeeks func(childComplexity int) int
 		Birthdate      func(childComplexity int) int
 		Phone          func(childComplexity int) int
 		Img            func(childComplexity int) int
@@ -97,7 +97,7 @@ type ComplexityRoot struct {
 		Profile  func(childComplexity int, idPublic string) int
 		Profiles func(childComplexity int) int
 		Job      func(childComplexity int, idPublic string) int
-		Jobs     func(childComplexity int, profileIDPublic *string, jobType *int, date *string, state *bool, title *string, location *string, limit int) int
+		Jobs     func(childComplexity int, profileIDPublic *string, jobType *int, startDate *string, endDate *string, state *bool, title *string, location *string, limit int) int
 	}
 
 	Task struct {
@@ -115,7 +115,7 @@ type QueryResolver interface {
 	Profile(ctx context.Context, idPublic string) (*Profile, error)
 	Profiles(ctx context.Context) ([]*Profile, error)
 	Job(ctx context.Context, idPublic string) (*Job, error)
-	Jobs(ctx context.Context, profileIDPublic *string, jobType *int, date *string, state *bool, title *string, location *string, limit int) ([]*Job, error)
+	Jobs(ctx context.Context, profileIDPublic *string, jobType *int, startDate *string, endDate *string, state *bool, title *string, location *string, limit int) ([]*Job, error)
 }
 
 type executableSchema struct {
@@ -384,12 +384,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Profile.Email(childComplexity), true
 
-	case "Profile.AvailablePosts":
-		if e.complexity.Profile.AvailablePosts == nil {
+	case "Profile.AvailableWeeks":
+		if e.complexity.Profile.AvailableWeeks == nil {
 			break
 		}
 
-		return e.complexity.Profile.AvailablePosts(childComplexity), true
+		return e.complexity.Profile.AvailableWeeks(childComplexity), true
 
 	case "Profile.Birthdate":
 		if e.complexity.Profile.Birthdate == nil {
@@ -453,7 +453,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Jobs(childComplexity, args["profile_id_public"].(*string), args["job_type"].(*int), args["date"].(*string), args["state"].(*bool), args["title"].(*string), args["location"].(*string), args["limit"].(int)), true
+		return e.complexity.Query.Jobs(childComplexity, args["profile_id_public"].(*string), args["job_type"].(*int), args["start_date"].(*string), args["end_date"].(*string), args["state"].(*bool), args["title"].(*string), args["location"].(*string), args["limit"].(int)), true
 
 	case "Task.Description":
 		if e.complexity.Task.Description == nil {
@@ -548,7 +548,7 @@ type Query {
     profile(id_public: String!): Profile!
     profiles: [Profile]!
     job(id_public:String!): Job!
-    jobs(profile_id_public:String,job_type:Int,date:String,state:Boolean,title:String,location:String,limit:Int!): [Job]!
+    jobs(profile_id_public:String,job_type:Int,start_date:String,end_date:String,state:Boolean,title:String,location:String,limit:Int!): [Job]!
 }
 type Mutation {
     createProfile(input: NewProfile!): Profile!
@@ -562,7 +562,7 @@ type Profile {
     profile_type: Int!
     names: String!
     email: String!
-    available_posts: Int!
+    available_weeks: Int!
     birthdate: String!
     phone: String!
     img: String!    
@@ -658,7 +658,7 @@ input UpdateProfile {
     names: String
     img: String
     email: String
-    available_posts: Int
+    available_weeks: Int
     birthdate: String
     phone: String
     profile_type: Int
@@ -776,45 +776,53 @@ func (ec *executionContext) field_Query_jobs_args(ctx context.Context, rawArgs m
 	}
 	args["job_type"] = arg1
 	var arg2 *string
-	if tmp, ok := rawArgs["date"]; ok {
+	if tmp, ok := rawArgs["start_date"]; ok {
 		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["date"] = arg2
-	var arg3 *bool
+	args["start_date"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["end_date"]; ok {
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["end_date"] = arg3
+	var arg4 *bool
 	if tmp, ok := rawArgs["state"]; ok {
-		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		arg4, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["state"] = arg3
-	var arg4 *string
-	if tmp, ok := rawArgs["title"]; ok {
-		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["title"] = arg4
+	args["state"] = arg4
 	var arg5 *string
-	if tmp, ok := rawArgs["location"]; ok {
+	if tmp, ok := rawArgs["title"]; ok {
 		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["location"] = arg5
-	var arg6 int
-	if tmp, ok := rawArgs["limit"]; ok {
-		arg6, err = ec.unmarshalNInt2int(ctx, tmp)
+	args["title"] = arg5
+	var arg6 *string
+	if tmp, ok := rawArgs["location"]; ok {
+		arg6, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit"] = arg6
+	args["location"] = arg6
+	var arg7 int
+	if tmp, ok := rawArgs["limit"]; ok {
+		arg7, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg7
 	return args, nil
 }
 
@@ -1723,7 +1731,7 @@ func (ec *executionContext) _Profile_email(ctx context.Context, field graphql.Co
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Profile_available_posts(ctx context.Context, field graphql.CollectedField, obj *Profile) graphql.Marshaler {
+func (ec *executionContext) _Profile_available_weeks(ctx context.Context, field graphql.CollectedField, obj *Profile) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -1735,7 +1743,7 @@ func (ec *executionContext) _Profile_available_posts(ctx context.Context, field 
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.AvailablePosts, nil
+		return obj.AvailableWeeks, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1938,7 +1946,7 @@ func (ec *executionContext) _Query_jobs(ctx context.Context, field graphql.Colle
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Jobs(rctx, args["profile_id_public"].(*string), args["job_type"].(*int), args["date"].(*string), args["state"].(*bool), args["title"].(*string), args["location"].(*string), args["limit"].(int))
+		return ec.resolvers.Query().Jobs(rctx, args["profile_id_public"].(*string), args["job_type"].(*int), args["start_date"].(*string), args["end_date"].(*string), args["state"].(*bool), args["title"].(*string), args["location"].(*string), args["limit"].(int))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -3184,9 +3192,9 @@ func (ec *executionContext) unmarshalInputUpdateProfile(ctx context.Context, v i
 			if err != nil {
 				return it, err
 			}
-		case "available_posts":
+		case "available_weeks":
 			var err error
-			it.AvailablePosts, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.AvailableWeeks, err = ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3463,8 +3471,8 @@ func (ec *executionContext) _Profile(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
-		case "available_posts":
-			out.Values[i] = ec._Profile_available_posts(ctx, field, obj)
+		case "available_weeks":
+			out.Values[i] = ec._Profile_available_weeks(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}

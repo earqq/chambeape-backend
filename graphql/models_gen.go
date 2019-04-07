@@ -88,7 +88,7 @@ type Profile struct {
 	Names          string `json:"names"`
 	Email          string `json:"email"`
 	Birthdate      string `json:"birthdate"`
-	AvailablePosts int    `json:"available_posts"  bson:"available_posts"`
+	AvailableWeeks int    `json:"available_weeks"  bson:"available_weeks"`
 	Phone          string `json:"phone"`
 	Img            string `json:"img"`
 }
@@ -117,7 +117,7 @@ type UpdateProfile struct {
 	Img            *string `json:"img"`
 	Email          *string `json:"email"`
 	Birthdate      *string `json:"birthdate"`
-	AvailablePosts *int    `json:"available_posts"  bson:"available_posts"`
+	AvailableWeeks *int    `json:"available_weeks"  bson:"available_weeks"`
 	Phone          *string `json:"phone"`
 	ProfileType    *int    `json:"profile_type" bson:"profile_type"`
 }

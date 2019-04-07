@@ -48,7 +48,7 @@ func (r *mutationResolver) CreateProfile(ctx context.Context, input NewProfile) 
 		"profile_type":    input.ProfileType,
 		"id_public":       input.IDPublic,
 		"phone":           input.Phone,
-		"available_posts": 2,
+		"available_weeks": 4,
 		"updated_at":      time.Now().Local(),
 		"img":             input.Img})
 	if err != nil {
@@ -96,8 +96,8 @@ func (r *mutationResolver) UpdateProfile(ctx context.Context, input UpdateProfil
 		fields["profile_type"] = *input.ProfileType
 		update = true
 	}
-	if input.AvailablePosts != nil {
-		fields["available_posts"] = *input.AvailablePosts
+	if input.AvailableWeeks != nil {
+		fields["available_weeks"] = *input.AvailableWeeks
 		update = true
 	}
 	if !update {
@@ -243,14 +243,14 @@ func (r *queryResolver) Job(ctx context.Context, id_public string) (*Job, error)
 
 	return &job, nil
 }
-func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, jobType *int, date *string, state *bool, title *string, location *string, limit int) ([]*Job, error) {
+func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, jobType *int, startDate *string, endDate *string, state *bool, title *string, location *string, limit int) ([]*Job, error) {
 	var jobs []*Job
 	var fields = bson.M{}
 	if jobType != nil {
 		fields["job_type"] = jobType
 	}
-	if date != nil {
-		fields["end_date"] = date
+	if endDate != nil {
+		fields["end_date"] = bson.M{"$gt": startDate, "$lt": endDate}
 	}
 	if state != nil {
 		arr := []*bool{state}

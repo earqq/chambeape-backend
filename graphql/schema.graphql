@@ -7,7 +7,7 @@ type Query {
     profile(id_public: String!): Profile!
     profiles: [Profile]!
     job(id_public:String!): Job!
-    jobs(profile_id_public:String,job_type:Int,date:String,state:Boolean,title:String,location:String,limit:Int!): [Job]!
+    jobs(profile_id_public:String,job_type:Int,start_date:String,end_date:String,state:Boolean,title:String,location:String,limit:Int!): [Job]!
 }
 type Mutation {
     createProfile(input: NewProfile!): Profile!
@@ -21,7 +21,7 @@ type Profile {
     profile_type: Int!
     names: String!
     email: String!
-    available_posts: Int!
+    available_weeks: Int!
     birthdate: String!
     phone: String!
     img: String!    
@@ -117,7 +117,7 @@ input UpdateProfile {
     names: String
     img: String
     email: String
-    available_posts: Int
+    available_weeks: Int
     birthdate: String
     phone: String
     profile_type: Int
