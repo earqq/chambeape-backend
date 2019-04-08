@@ -1,11 +1,11 @@
 package main
 
 import (
+	"chambeape/db"
+	"chambeape/graphql"
 	"log"
 	"net/http"
 	"os"
-	"tuchamba/db"
-	"tuchamba/graphql"
 
 	"github.com/99designs/gqlgen/handler"
 	"github.com/gorilla/mux"

@@ -1,10 +1,10 @@
 package main
 
 import (
+	"chambeape/users"
 	"log"
 	"net/http"
 	"os"
-	"tuchamba/users"
 
 	"github.com/99designs/gqlgen/handler"
 )
