@@ -161,11 +161,9 @@ func (r *mutationResolver) UpdateJob(ctx context.Context, input UpdateJob) (*Job
 	}
 	if input.Calls != nil {
 		fields["calls"] = *input.Calls
-		update = true
 	}
 	if input.Visits != nil {
 		fields["visits"] = *input.Visits
-		update = true
 	}
 	if &input.IDPublic != nil && input.IDPublic != "" {
 		fields["id_public"] = input.IDPublic
