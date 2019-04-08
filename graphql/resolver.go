@@ -130,18 +130,24 @@ func (r *mutationResolver) CreateJob(ctx context.Context, input NewJob) (*Job, e
 	} else if count > 0 {
 		return &Job{}, errors.New("user with that id public already exists")
 	}
+	t := transform.Chain(norm.NFD, transform.RemoveFunc(isMn), norm.NFC)
+	if input.Location.ToSearch != nil {
+		upperLocality, _, _ := transform.String(t, *input.Location.ToSearch)
+		*input.Location.ToSearch = strings.ToUpper(upperLocality)
+	}
 	err = r.jobs.Insert(bson.M{"title": input.Title,
-		"end_date":   input.EndDate,
-		"job_type":   input.JobType,
-		"id_public":  input.IDPublic,
-		"owner":      input.Owner,
-		"visits":     input.Visits,
-		"calls":      input.Calls,
-		"price":      input.Price,
-		"state":      input.State,
-		"location":   input.Location,
-		"updated_at": time.Now().Local(),
-		"tasks":      input.Tasks})
+		"end_date":             input.EndDate,
+		"job_type":             input.JobType,
+		"job_type_description": strings.ToUpper(input.JobTypeDescription),
+		"id_public":            input.IDPublic,
+		"owner":                input.Owner,
+		"visits":               input.Visits,
+		"calls":                input.Calls,
+		"price":                input.Price,
+		"state":                input.State,
+		"location":             input.Location,
+		"updated_at":           time.Now().Local(),
+		"tasks":                input.Tasks})
 	err = r.jobs.Find(bson.M{"id_public": input.IDPublic}).One(&job)
 	if err != nil {
 		return &Job{}, err
@@ -157,20 +163,24 @@ func (r *mutationResolver) UpdateJob(ctx context.Context, input UpdateJob) (*Job
 	var job Job
 
 	update := false
-
+	newUpdatedAt := false
 	if input.Title != nil && *input.Title != "" {
 		fields["title"] = *input.Title
 		update = true
+		newUpdatedAt = true
 	}
 	if input.Tasks != nil {
 		fields["tasks"] = input.Tasks
 		update = true
+		newUpdatedAt = true
 	}
 	if input.Calls != nil {
 		fields["calls"] = *input.Calls
+		update = true
 	}
 	if input.Visits != nil {
 		fields["visits"] = *input.Visits
+		update = true
 	}
 	if &input.IDPublic != nil && input.IDPublic != "" {
 		fields["id_public"] = input.IDPublic
@@ -179,43 +189,48 @@ func (r *mutationResolver) UpdateJob(ctx context.Context, input UpdateJob) (*Job
 	if input.JobType != nil {
 		fields["job_type"] = *input.JobType
 		update = true
+		newUpdatedAt = true
+	}
+	if input.JobTypeDescription != nil && *input.JobTypeDescription != "" {
+		fields["job_type_description"] = strings.ToUpper(*input.JobTypeDescription)
+		update = true
+		newUpdatedAt = true
 	}
 	if input.EndDate != nil && *input.EndDate != "" {
 		fields["end_date"] = *input.EndDate
 		update = true
+		newUpdatedAt = true
 	}
 	if input.Location != nil {
 		t := transform.Chain(norm.NFD, transform.RemoveFunc(isMn), norm.NFC)
-		newLocality, _, _ := transform.String(t, *input.Location.Locality)
-		newAreaLevel1, _, _ := transform.String(t, *input.Location.AreaLevel1)
-		newAreaLevel2, _, _ := transform.String(t, *input.Location.AreaLevel2)
-		newCountry, _, _ := transform.String(t, *input.Location.Country)
-		newRoute, _, _ := transform.String(t, *input.Location.Route)
-		*input.Location.Locality = newLocality
-		*input.Location.AreaLevel1 = newAreaLevel1
-		*input.Location.AreaLevel2 = newAreaLevel2
-		*input.Location.Route = newRoute
-		*input.Location.Country = newCountry
+		if input.Location.ToSearch != nil && *input.Location.ToSearch != "" {
+			upperToSearch, _, _ := transform.String(t, *input.Location.ToSearch)
+			*input.Location.ToSearch = strings.ToUpper(upperToSearch)
+		}
 		fields["location"] = *input.Location
 		update = true
+		newUpdatedAt = true
 	}
 	if input.State != nil {
 		fields["state"] = *input.State
 		update = true
+		newUpdatedAt = true
 	}
 	if input.Price != nil {
 		fields["price"] = *input.Price
 		update = true
+		newUpdatedAt = true
 	}
 	if input.Owner != nil {
 		fields["owner"] = *input.Owner
 		update = true
+		newUpdatedAt = true
 	}
 
 	if !update {
 		return &Job{}, errors.New("no fields present for updating data")
 	}
-	if update {
+	if newUpdatedAt {
 		fields["updated_at"] = time.Now().Local()
 	}
 	err := r.jobs.Update(bson.M{"id_public": input.IDPublic}, bson.M{"$set": fields})
@@ -261,12 +276,9 @@ func (r *queryResolver) Job(ctx context.Context, id_public string) (*Job, error)
 
 	return &job, nil
 }
-func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, jobType *int, startDate *string, endDate *string, state *bool, search *string, limit int) ([]*Job, error) {
+func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, startDate *string, endDate *string, state *bool, search *string, limit int) ([]*Job, error) {
 	var jobs []*Job
 	var fields = bson.M{}
-	if jobType != nil {
-		fields["job_type"] = jobType
-	}
 	if endDate != nil {
 		fields["end_date"] = bson.M{"$gt": startDate, "$lt": endDate}
 	}
@@ -276,10 +288,8 @@ func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, jobTy
 	}
 	if search != nil {
 		fields["$or"] = []bson.M{
-			bson.M{"location.locality": bson.M{"$regex": strings.ToLower(*search)}},
-			bson.M{"location.locality": bson.M{"$regex": strings.ToUpper(*search)}},
-			bson.M{"location.area_level_1": bson.M{"$regex": *search}},
-			bson.M{"location.area_level_2": bson.M{"$regex": *search}},
+			bson.M{"location.to_search": bson.M{"$regex": strings.ToUpper(*search)}},
+			bson.M{"job_type_description": bson.M{"$regex": strings.ToUpper(*search)}},
 			bson.M{"title": bson.M{"$regex": *search}}}
 	}
 	if profileIDPublic != nil {

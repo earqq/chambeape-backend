@@ -7,7 +7,7 @@ type Query {
     profile(id_public: String!): Profile!
     profiles: [Profile]!
     job(id_public:String!): Job!
-    jobs(profile_id_public:String,job_type:Int,start_date:String,end_date:String,state:Boolean,search:String,limit:Int!): [Job]!
+    jobs(profile_id_public:String,start_date:String,end_date:String,state:Boolean,search:String,limit:Int!): [Job]!
 }
 type Mutation {
     createProfile(input: NewProfile!): Profile!
@@ -44,6 +44,7 @@ type Location {
     area_level_1:String
     area_level_2:String
     country: String
+    to_search:String
 }
 type Job {
     id: ID!
@@ -52,6 +53,7 @@ type Job {
     id_public:String!
     end_date: String!
     job_type: Int!
+    job_type_description: String!
     visits:Int!
     calls:Int!
     price:Float!
@@ -75,6 +77,7 @@ input AddLocation {
     area_level_1:String
     area_level_2:String
     country: String
+    to_search:String
 }
 input NewJob {
     title: String!
@@ -85,6 +88,7 @@ input NewJob {
     visits:Int!
     calls:Int!
     job_type: Int!
+    job_type_description: String!
     price: Float!
     location:AddLocation!
     owner:NewJobOwner!
@@ -96,6 +100,7 @@ input UpdateJob {
     state:Boolean
     end_date: String
     job_type: Int
+    job_type_description: String
     visits:Int
     calls:Int
     price: Float

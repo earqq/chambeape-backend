@@ -42,18 +42,19 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Job struct {
-		ID       func(childComplexity int) int
-		Title    func(childComplexity int) int
-		Tasks    func(childComplexity int) int
-		IDPublic func(childComplexity int) int
-		EndDate  func(childComplexity int) int
-		JobType  func(childComplexity int) int
-		Visits   func(childComplexity int) int
-		Calls    func(childComplexity int) int
-		Price    func(childComplexity int) int
-		State    func(childComplexity int) int
-		Location func(childComplexity int) int
-		Owner    func(childComplexity int) int
+		ID                 func(childComplexity int) int
+		Title              func(childComplexity int) int
+		Tasks              func(childComplexity int) int
+		IDPublic           func(childComplexity int) int
+		EndDate            func(childComplexity int) int
+		JobType            func(childComplexity int) int
+		JobTypeDescription func(childComplexity int) int
+		Visits             func(childComplexity int) int
+		Calls              func(childComplexity int) int
+		Price              func(childComplexity int) int
+		State              func(childComplexity int) int
+		Location           func(childComplexity int) int
+		Owner              func(childComplexity int) int
 	}
 
 	JobOwner struct {
@@ -72,6 +73,7 @@ type ComplexityRoot struct {
 		AreaLevel1 func(childComplexity int) int
 		AreaLevel2 func(childComplexity int) int
 		Country    func(childComplexity int) int
+		ToSearch   func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -97,7 +99,7 @@ type ComplexityRoot struct {
 		Profile  func(childComplexity int, idPublic string) int
 		Profiles func(childComplexity int) int
 		Job      func(childComplexity int, idPublic string) int
-		Jobs     func(childComplexity int, profileIDPublic *string, jobType *int, startDate *string, endDate *string, state *bool, search *string, limit int) int
+		Jobs     func(childComplexity int, profileIDPublic *string, startDate *string, endDate *string, state *bool, search *string, limit int) int
 	}
 
 	Task struct {
@@ -115,7 +117,7 @@ type QueryResolver interface {
 	Profile(ctx context.Context, idPublic string) (*Profile, error)
 	Profiles(ctx context.Context) ([]*Profile, error)
 	Job(ctx context.Context, idPublic string) (*Job, error)
-	Jobs(ctx context.Context, profileIDPublic *string, jobType *int, startDate *string, endDate *string, state *bool, search *string, limit int) ([]*Job, error)
+	Jobs(ctx context.Context, profileIDPublic *string, startDate *string, endDate *string, state *bool, search *string, limit int) ([]*Job, error)
 }
 
 type executableSchema struct {
@@ -174,6 +176,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Job.JobType(childComplexity), true
+
+	case "Job.JobTypeDescription":
+		if e.complexity.Job.JobTypeDescription == nil {
+			break
+		}
+
+		return e.complexity.Job.JobTypeDescription(childComplexity), true
 
 	case "Job.Visits":
 		if e.complexity.Job.Visits == nil {
@@ -300,6 +309,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Location.Country(childComplexity), true
+
+	case "Location.ToSearch":
+		if e.complexity.Location.ToSearch == nil {
+			break
+		}
+
+		return e.complexity.Location.ToSearch(childComplexity), true
 
 	case "Mutation.CreateProfile":
 		if e.complexity.Mutation.CreateProfile == nil {
@@ -453,7 +469,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Jobs(childComplexity, args["profile_id_public"].(*string), args["job_type"].(*int), args["start_date"].(*string), args["end_date"].(*string), args["state"].(*bool), args["search"].(*string), args["limit"].(int)), true
+		return e.complexity.Query.Jobs(childComplexity, args["profile_id_public"].(*string), args["start_date"].(*string), args["end_date"].(*string), args["state"].(*bool), args["search"].(*string), args["limit"].(int)), true
 
 	case "Task.Description":
 		if e.complexity.Task.Description == nil {
@@ -548,7 +564,7 @@ type Query {
     profile(id_public: String!): Profile!
     profiles: [Profile]!
     job(id_public:String!): Job!
-    jobs(profile_id_public:String,job_type:Int,start_date:String,end_date:String,state:Boolean,search:String,limit:Int!): [Job]!
+    jobs(profile_id_public:String,start_date:String,end_date:String,state:Boolean,search:String,limit:Int!): [Job]!
 }
 type Mutation {
     createProfile(input: NewProfile!): Profile!
@@ -585,6 +601,7 @@ type Location {
     area_level_1:String
     area_level_2:String
     country: String
+    to_search:String
 }
 type Job {
     id: ID!
@@ -593,6 +610,7 @@ type Job {
     id_public:String!
     end_date: String!
     job_type: Int!
+    job_type_description: String!
     visits:Int!
     calls:Int!
     price:Float!
@@ -616,6 +634,7 @@ input AddLocation {
     area_level_1:String
     area_level_2:String
     country: String
+    to_search:String
 }
 input NewJob {
     title: String!
@@ -626,6 +645,7 @@ input NewJob {
     visits:Int!
     calls:Int!
     job_type: Int!
+    job_type_description: String!
     price: Float!
     location:AddLocation!
     owner:NewJobOwner!
@@ -637,6 +657,7 @@ input UpdateJob {
     state:Boolean
     end_date: String
     job_type: Int
+    job_type_description: String
     visits:Int
     calls:Int
     price: Float
@@ -767,54 +788,46 @@ func (ec *executionContext) field_Query_jobs_args(ctx context.Context, rawArgs m
 		}
 	}
 	args["profile_id_public"] = arg0
-	var arg1 *int
-	if tmp, ok := rawArgs["job_type"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+	var arg1 *string
+	if tmp, ok := rawArgs["start_date"]; ok {
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["job_type"] = arg1
+	args["start_date"] = arg1
 	var arg2 *string
-	if tmp, ok := rawArgs["start_date"]; ok {
+	if tmp, ok := rawArgs["end_date"]; ok {
 		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["start_date"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["end_date"]; ok {
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["end_date"] = arg3
-	var arg4 *bool
+	args["end_date"] = arg2
+	var arg3 *bool
 	if tmp, ok := rawArgs["state"]; ok {
-		arg4, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["state"] = arg4
-	var arg5 *string
+	args["state"] = arg3
+	var arg4 *string
 	if tmp, ok := rawArgs["search"]; ok {
-		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["search"] = arg5
-	var arg6 int
+	args["search"] = arg4
+	var arg5 int
 	if tmp, ok := rawArgs["limit"]; ok {
-		arg6, err = ec.unmarshalNInt2int(ctx, tmp)
+		arg5, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit"] = arg6
+	args["limit"] = arg5
 	return args, nil
 }
 
@@ -1015,6 +1028,32 @@ func (ec *executionContext) _Job_job_type(ctx context.Context, field graphql.Col
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Job_job_type_description(ctx context.Context, field graphql.CollectedField, obj *Job) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Job",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.JobTypeDescription, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Job_visits(ctx context.Context, field graphql.CollectedField, obj *Job) graphql.Marshaler {
@@ -1451,6 +1490,29 @@ func (ec *executionContext) _Location_country(ctx context.Context, field graphql
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Country, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Location_to_search(ctx context.Context, field graphql.CollectedField, obj *Location) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Location",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ToSearch, nil
 	})
 	if resTmp == nil {
 		return graphql.Null
@@ -1938,7 +2000,7 @@ func (ec *executionContext) _Query_jobs(ctx context.Context, field graphql.Colle
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Jobs(rctx, args["profile_id_public"].(*string), args["job_type"].(*int), args["start_date"].(*string), args["end_date"].(*string), args["state"].(*bool), args["search"].(*string), args["limit"].(int))
+		return ec.resolvers.Query().Jobs(rctx, args["profile_id_public"].(*string), args["start_date"].(*string), args["end_date"].(*string), args["state"].(*bool), args["search"].(*string), args["limit"].(int))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2884,6 +2946,12 @@ func (ec *executionContext) unmarshalInputAddLocation(ctx context.Context, v int
 			if err != nil {
 				return it, err
 			}
+		case "to_search":
+			var err error
+			it.ToSearch, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -2941,6 +3009,12 @@ func (ec *executionContext) unmarshalInputNewJob(ctx context.Context, v interfac
 		case "job_type":
 			var err error
 			it.JobType, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "job_type_description":
+			var err error
+			it.JobTypeDescription, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3118,6 +3192,12 @@ func (ec *executionContext) unmarshalInputUpdateJob(ctx context.Context, v inter
 			if err != nil {
 				return it, err
 			}
+		case "job_type_description":
+			var err error
+			it.JobTypeDescription, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "visits":
 			var err error
 			it.Visits, err = ec.unmarshalOInt2ᚖint(ctx, v)
@@ -3260,6 +3340,11 @@ func (ec *executionContext) _Job(ctx context.Context, sel ast.SelectionSet, obj 
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "job_type_description":
+			out.Values[i] = ec._Job_job_type_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "visits":
 			out.Values[i] = ec._Job_visits(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -3370,6 +3455,8 @@ func (ec *executionContext) _Location(ctx context.Context, sel ast.SelectionSet,
 			out.Values[i] = ec._Location_area_level_2(ctx, field, obj)
 		case "country":
 			out.Values[i] = ec._Location_country(ctx, field, obj)
+		case "to_search":
+			out.Values[i] = ec._Location_to_search(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
