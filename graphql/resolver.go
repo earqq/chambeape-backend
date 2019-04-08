@@ -133,12 +133,12 @@ func (r *mutationResolver) CreateJob(ctx context.Context, input NewJob) (*Job, e
 	t := transform.Chain(norm.NFD, transform.RemoveFunc(isMn), norm.NFC)
 	if input.Location.ToSearch != nil {
 		upperLocality, _, _ := transform.String(t, *input.Location.ToSearch)
-		*input.Location.ToSearch = strings.ToUpper(upperLocality)
+		*input.Location.ToSearch = strings.ToLower(upperLocality)
 	}
-	err = r.jobs.Insert(bson.M{"title": input.Title,
+	err = r.jobs.Insert(bson.M{"title": strings.ToLower(input.Title),
 		"end_date":             input.EndDate,
 		"job_type":             input.JobType,
-		"job_type_description": strings.ToUpper(input.JobTypeDescription),
+		"job_type_description": strings.ToLower(input.JobTypeDescription),
 		"id_public":            input.IDPublic,
 		"owner":                input.Owner,
 		"visits":               input.Visits,
@@ -165,7 +165,7 @@ func (r *mutationResolver) UpdateJob(ctx context.Context, input UpdateJob) (*Job
 	update := false
 	newUpdatedAt := false
 	if input.Title != nil && *input.Title != "" {
-		fields["title"] = *input.Title
+		fields["title"] = strings.ToLower(*input.Title)
 		update = true
 		newUpdatedAt = true
 	}
@@ -192,7 +192,7 @@ func (r *mutationResolver) UpdateJob(ctx context.Context, input UpdateJob) (*Job
 		newUpdatedAt = true
 	}
 	if input.JobTypeDescription != nil && *input.JobTypeDescription != "" {
-		fields["job_type_description"] = strings.ToUpper(*input.JobTypeDescription)
+		fields["job_type_description"] = strings.ToLower(*input.JobTypeDescription)
 		update = true
 		newUpdatedAt = true
 	}
@@ -205,7 +205,7 @@ func (r *mutationResolver) UpdateJob(ctx context.Context, input UpdateJob) (*Job
 		t := transform.Chain(norm.NFD, transform.RemoveFunc(isMn), norm.NFC)
 		if input.Location.ToSearch != nil && *input.Location.ToSearch != "" {
 			upperToSearch, _, _ := transform.String(t, *input.Location.ToSearch)
-			*input.Location.ToSearch = strings.ToUpper(upperToSearch)
+			*input.Location.ToSearch = strings.ToLower(upperToSearch)
 		}
 		fields["location"] = *input.Location
 		update = true
@@ -288,9 +288,9 @@ func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, start
 	}
 	if search != nil {
 		fields["$or"] = []bson.M{
-			bson.M{"location.to_search": bson.M{"$regex": strings.ToUpper(*search)}},
-			bson.M{"job_type_description": bson.M{"$regex": strings.ToUpper(*search)}},
-			bson.M{"title": bson.M{"$regex": *search}}}
+			bson.M{"location.to_search": bson.M{"$regex": strings.ToLower(*search)}},
+			bson.M{"job_type_description": bson.M{"$regex": strings.ToLower(*search)}},
+			bson.M{"title": bson.M{"$regex": strings.ToLower(*search)}}}
 	}
 	if profileIDPublic != nil {
 		fields["owner.id_public"] = profileIDPublic
