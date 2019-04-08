@@ -197,7 +197,9 @@ func (r *mutationResolver) UpdateJob(ctx context.Context, input UpdateJob) (*Job
 	if !update {
 		return &Job{}, errors.New("no fields present for updating data")
 	}
-	fields["updated_at"] = time.Now().Local()
+	if update {
+		fields["updated_at"] = time.Now().Local()
+	}
 	err := r.jobs.Update(bson.M{"id_public": input.IDPublic}, bson.M{"$set": fields})
 	if err != nil {
 		fmt.Print("errorr", input.IDPublic)
