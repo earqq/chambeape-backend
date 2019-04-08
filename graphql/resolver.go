@@ -4,11 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 	"tuchamba/db"
+	"unicode"
 
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
+	"golang.org/x/text/transform"
+	"golang.org/x/text/unicode/norm"
 ) // THIS CODE IS A STARTING POINT ONLY. IT WILL NOT BE UPDATED WITH SCHEMA CHANGES.
 
 type Resolver struct {
@@ -145,6 +149,9 @@ func (r *mutationResolver) CreateJob(ctx context.Context, input NewJob) (*Job, e
 
 	return &job, nil
 }
+func isMn(r rune) bool {
+	return unicode.Is(unicode.Mn, r) // Mn: nonspacing marks
+}
 func (r *mutationResolver) UpdateJob(ctx context.Context, input UpdateJob) (*Job, error) {
 	var fields = bson.M{}
 	var job Job
@@ -178,6 +185,17 @@ func (r *mutationResolver) UpdateJob(ctx context.Context, input UpdateJob) (*Job
 		update = true
 	}
 	if input.Location != nil {
+		t := transform.Chain(norm.NFD, transform.RemoveFunc(isMn), norm.NFC)
+		newLocality, _, _ := transform.String(t, *input.Location.Locality)
+		newAreaLevel1, _, _ := transform.String(t, *input.Location.AreaLevel1)
+		newAreaLevel2, _, _ := transform.String(t, *input.Location.AreaLevel2)
+		newCountry, _, _ := transform.String(t, *input.Location.Country)
+		newRoute, _, _ := transform.String(t, *input.Location.Route)
+		*input.Location.Locality = newLocality
+		*input.Location.AreaLevel1 = newAreaLevel1
+		*input.Location.AreaLevel2 = newAreaLevel2
+		*input.Location.Route = newRoute
+		*input.Location.Country = newCountry
 		fields["location"] = *input.Location
 		update = true
 	}
@@ -257,7 +275,9 @@ func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, jobTy
 		fields["state"] = bson.M{"$in": arr}
 	}
 	if search != nil {
-		fields["$or"] = []bson.M{bson.M{"location.locality": bson.M{"$regex": *search}},
+		fields["$or"] = []bson.M{
+			bson.M{"location.locality": bson.M{"$regex": strings.ToLower(*search)}},
+			bson.M{"location.locality": bson.M{"$regex": strings.ToUpper(*search)}},
 			bson.M{"location.area_level_1": bson.M{"$regex": *search}},
 			bson.M{"location.area_level_2": bson.M{"$regex": *search}},
 			bson.M{"title": bson.M{"$regex": *search}}}
