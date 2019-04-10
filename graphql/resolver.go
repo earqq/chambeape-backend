@@ -40,11 +40,11 @@ type mutationResolver struct{ *Resolver }
 func (r *mutationResolver) CreateProfile(ctx context.Context, input NewProfile) (*Profile, error) {
 	var user Profile
 
-	count, err := r.profiles.Find(bson.M{"email": input.Email}).Count()
+	count, err := r.profiles.Find(bson.M{"id_public": input.IDPublic}).Count()
 	if err != nil {
 		return &Profile{}, err
 	} else if count > 0 {
-		return &Profile{}, errors.New("user with that email already exists")
+		return &Profile{}, errors.New("user with that id public already exists")
 	}
 	err = r.profiles.Insert(bson.M{"email": input.Email,
 		"birthdate":       input.Birthdate,

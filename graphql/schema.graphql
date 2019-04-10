@@ -108,7 +108,7 @@ input UpdateJob {
     owner:NewJobOwner
 }
 input NewProfile {
-    email: String!
+    email: String
     names: String!  
     id_public:String!
     birthdate: String

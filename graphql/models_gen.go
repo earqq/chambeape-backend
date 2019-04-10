@@ -72,7 +72,7 @@ type NewJobOwner struct {
 }
 
 type NewProfile struct {
-	Email       string  `json:"email"`
+	Email       *string `json:"email"`
 	Names       string  `json:"names"`
 	IDPublic    string  `json:"id_public" bson:"id_public"`
 	Birthdate   *string `json:"birthdate"`

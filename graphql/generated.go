@@ -665,7 +665,7 @@ input UpdateJob {
     owner:NewJobOwner
 }
 input NewProfile {
-    email: String!
+    email: String
     names: String!  
     id_public:String!
     birthdate: String
@@ -3086,7 +3086,7 @@ func (ec *executionContext) unmarshalInputNewProfile(ctx context.Context, v inte
 		switch k {
 		case "email":
 			var err error
-			it.Email, err = ec.unmarshalNString2string(ctx, v)
+			it.Email, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
