@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand"
 	"strings"
 	"time"
 	"unicode"
@@ -296,5 +297,14 @@ func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, start
 		fields["owner.id_public"] = profileIDPublic
 	}
 	r.jobs.Find(fields).Limit(limit).Sort("-updated_at").All(&jobs)
+	Shuffle(jobs)
 	return jobs, nil
+}
+func Shuffle(slc []*Job) {
+	for i := 1; i < len(slc); i++ {
+		r := rand.Intn(i + 1)
+		if i != r {
+			slc[r], slc[i] = slc[i], slc[r]
+		}
+	}
 }
