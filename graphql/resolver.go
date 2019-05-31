@@ -297,7 +297,7 @@ func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, start
 		fields["owner.id_public"] = profileIDPublic
 	}
 	r.jobs.Find(fields).Limit(limit).Sort("-updated_at").All(&jobs)
-	Shuffle(jobs)
+	// Shuffle(jobs)
 	return jobs, nil
 }
 func Shuffle(slc []*Job) {
