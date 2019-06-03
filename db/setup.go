@@ -17,7 +17,7 @@ func ConnectDB() {
 
 	session.SetMode(mgo.Monotonic, true)
 
-	db = session.DB("chambeape")
+	db = session.DB("chambeape_test")
 }
 func GetCollection(collection string) *mgo.Collection {
 	return db.C(collection)
