@@ -2,6 +2,13 @@
 
 package graphql
 
+type AddWorker struct {
+	WorkerType  *int         `json:"worker_type" bson:"worker_type`
+	Description *string      `json:"description"`
+	Location    *AddLocation `json:"location"`
+	EndDate     *string      `json:"end_date"`
+}
+
 type AddLocation struct {
 	Latitude   *string `json:"latitude"`
 	Longitude  *string `json:"longitude"`
@@ -17,21 +24,20 @@ type AddLocation struct {
 type Job struct {
 	ID                 string   `json:"id"`
 	Title              string   `json:"title"`
-	Tasks              []Task   `json:"tasks"`
 	IDPublic           string   `json:"id_public" bson:"id_public"`
 	EndDate            string   `json:"end_date" bson:"end_date"`
 	JobType            int      `json:"job_type" bson:"job_type"`
 	JobTypeDescription string   `json:"job_type_description" bson:"job_type_description"`
 	Visits             int      `json:"visits"`
 	Calls              int      `json:"calls"`
-	Price              float64  `json:"price"`
+	Validate           bool     `json:"validate"`
 	State              bool     `json:"state"`
 	Location           Location `json:"location"`
 	Owner              JobOwner `json:"owner"`
 }
 
 type JobOwner struct {
-	IDPublic string `json:"id_public" bson:"id_public"`
+	IDPublic string `json:"id_public"`
 	Name     string `json:"name"`
 	Phone    string `json:"phone"`
 	Img      string `json:"img"`
@@ -51,15 +57,14 @@ type Location struct {
 
 type NewJob struct {
 	Title              string      `json:"title"`
-	Tasks              []NewTask   `json:"tasks"`
 	EndDate            string      `json:"end_date" bson:"end_date"`
 	IDPublic           string      `json:"id_public" bson:"id_public"`
-	State              bool        `json:"state"`
+	State              bool        `json:"state" `
+	Validate           bool        `json:"state" `
 	Visits             int         `json:"visits"`
 	Calls              int         `json:"calls"`
 	JobType            int         `json:"job_type" bson:"job_type"`
 	JobTypeDescription string      `json:"job_type_description" bson:"job_type_description"`
-	Price              float64     `json:"price"`
 	Location           AddLocation `json:"location"`
 	Owner              NewJobOwner `json:"owner"`
 }
@@ -81,10 +86,6 @@ type NewProfile struct {
 	Img         *string `json:"img"`
 }
 
-type NewTask struct {
-	Description *string `json:"description"`
-}
-
 type Profile struct {
 	ID             string `json:"id"`
 	IDPublic       string `json:"id_public" bson:"id_public"`
@@ -95,34 +96,38 @@ type Profile struct {
 	AvailableWeeks int    `json:"available_weeks"  bson:"available_weeks"`
 	Phone          string `json:"phone"`
 	Img            string `json:"img"`
-}
-
-type Task struct {
-	Description string `json:"description"`
+	Worker         Worker `json:"worker"`
 }
 
 type UpdateJob struct {
-	Title              *string      `json:"title"`
+	Title              *string      `json:"title" bson:"title"`
 	IDPublic           string       `json:"id_public" bson:"id_public"`
-	Tasks              []*NewTask   `json:"tasks"`
-	State              *bool        `json:"state"`
+	State              *bool        `json:"state" bson:"state"`
 	EndDate            *string      `json:"end_date" bson:"end_date"`
+	Validate           bool         `json:"validate" bson:"validate"`
 	JobType            *int         `json:"job_type" bson:"job_type"`
 	JobTypeDescription *string      `json:"job_type_description" bson:"job_type_description"`
 	Visits             *int         `json:"visits"`
 	Calls              *int         `json:"calls"`
-	Price              *float64     `json:"price"`
 	Location           *AddLocation `json:"location"`
 	Owner              *NewJobOwner `json:"owner"`
 }
 
 type UpdateProfile struct {
-	IDPublic       string  `json:"id_public" bson:"id_public"`
-	Names          *string `json:"names"`
-	Img            *string `json:"img"`
-	Email          *string `json:"email"`
-	Birthdate      *string `json:"birthdate"`
-	AvailableWeeks *int    `json:"available_weeks"  bson:"available_weeks"`
-	Phone          *string `json:"phone"`
-	ProfileType    *int    `json:"profile_type" bson:"profile_type"`
+	IDPublic       string     `json:"id_public" bson:"id_public"`
+	Names          *string    `json:"names"`
+	Img            *string    `json:"img"`
+	Email          *string    `json:"email"`
+	Birthdate      *string    `json:"birthdate"`
+	AvailableWeeks *int       `json:"available_weeks"  bson:"available_weeks"`
+	Phone          *string    `json:"phone"`
+	ProfileType    *int       `json:"profile_type" bson:"profile_type"`
+	Worker         *AddWorker `json:"worker" bson:"profile_type"`
+}
+
+type Worker struct {
+	WorkerType  *int      `json:"worker_type" bson:"worker_type"`
+	Description *int      `json:"description" bson:"description"`
+	Location    *Location `json:"location" bson:"location"`
+	EndDate     *string   `json:"end_date" bson:"end_date"`
 }

@@ -105,6 +105,10 @@ func (r *mutationResolver) UpdateProfile(ctx context.Context, input UpdateProfil
 		fields["available_weeks"] = *input.AvailableWeeks
 		update = true
 	}
+	if input.Worker != nil {
+		fields["worker"] = *input.Worker
+		update = true
+	}
 	if !update {
 		return &Profile{}, errors.New("no fields present for updating data")
 	}
@@ -122,7 +126,6 @@ func (r *mutationResolver) UpdateProfile(ctx context.Context, input UpdateProfil
 	user.ID = bson.ObjectId(user.ID).Hex()
 	return &user, nil
 }
-
 func (r *mutationResolver) CreateJob(ctx context.Context, input NewJob) (*Job, error) {
 	var job Job
 	count, err := r.jobs.Find(bson.M{"id_public": input.IDPublic}).Count()
@@ -143,12 +146,11 @@ func (r *mutationResolver) CreateJob(ctx context.Context, input NewJob) (*Job, e
 		"id_public":            input.IDPublic,
 		"owner":                input.Owner,
 		"visits":               input.Visits,
+		"validate":             input.Validate,
 		"calls":                input.Calls,
-		"price":                input.Price,
 		"state":                input.State,
 		"location":             input.Location,
-		"updated_at":           time.Now().Local(),
-		"tasks":                input.Tasks})
+		"updated_at":           time.Now().Local()})
 	err = r.jobs.Find(bson.M{"id_public": input.IDPublic}).One(&job)
 	if err != nil {
 		return &Job{}, err
@@ -156,6 +158,7 @@ func (r *mutationResolver) CreateJob(ctx context.Context, input NewJob) (*Job, e
 
 	return &job, nil
 }
+
 func isMn(r rune) bool {
 	return unicode.Is(unicode.Mn, r) // Mn: nonspacing marks
 }
@@ -170,11 +173,7 @@ func (r *mutationResolver) UpdateJob(ctx context.Context, input UpdateJob) (*Job
 		update = true
 		newUpdatedAt = true
 	}
-	if input.Tasks != nil {
-		fields["tasks"] = input.Tasks
-		update = true
-		newUpdatedAt = true
-	}
+
 	if input.Calls != nil {
 		fields["calls"] = *input.Calls
 		update = true
@@ -217,11 +216,7 @@ func (r *mutationResolver) UpdateJob(ctx context.Context, input UpdateJob) (*Job
 		update = true
 		newUpdatedAt = true
 	}
-	if input.Price != nil {
-		fields["price"] = *input.Price
-		update = true
-		newUpdatedAt = true
-	}
+
 	if input.Owner != nil {
 		fields["owner"] = *input.Owner
 		update = true
@@ -260,10 +255,30 @@ func (r *queryResolver) Profile(ctx context.Context, public_id string) (*Profile
 
 	return &user, nil
 }
-func (r *queryResolver) Profiles(ctx context.Context) ([]*Profile, error) {
+func (r *queryResolver) Profiles(ctx context.Context, limit int, profile_type *int, search *string, worker_type *int, random *bool) ([]*Profile, error) {
 	var profiles []*Profile
+
 	r.profiles.Find(bson.M{}).All(&profiles)
 	fmt.Print(profiles)
+	return profiles, nil
+
+	var fields = bson.M{}
+	if profile_type != nil {
+		fields["profile_type"] = profile_type
+	}
+
+	if search != nil {
+		fields["$or"] = []bson.M{
+			bson.M{"worker.location.to_search": bson.M{"$regex": strings.ToLower(*search)}},
+			bson.M{"names": bson.M{"$regex": strings.ToLower(*search)}}}
+	}
+	if worker_type != nil {
+		fields["worker.worker_type"] = worker_type
+	}
+	r.profiles.Find(fields).Limit(limit).Sort("-updated_at").All(&profiles)
+	if random != nil {
+		ShuffleProfile(profiles)
+	}
 	return profiles, nil
 }
 
@@ -277,11 +292,11 @@ func (r *queryResolver) Job(ctx context.Context, id_public string) (*Job, error)
 
 	return &job, nil
 }
-func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, startDate *string, endDate *string, state *bool, search *string, limit int) ([]*Job, error) {
+func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, endDate *string, state *bool, search *string, limit int, job_type *int, random *bool) ([]*Job, error) {
 	var jobs []*Job
 	var fields = bson.M{}
 	if endDate != nil {
-		fields["end_date"] = bson.M{"$gt": startDate, "$lt": endDate}
+		fields["end_date"] = bson.M{"$lt": endDate}
 	}
 	if state != nil {
 		arr := []*bool{state}
@@ -296,11 +311,24 @@ func (r *queryResolver) Jobs(ctx context.Context, profileIDPublic *string, start
 	if profileIDPublic != nil {
 		fields["owner.id_public"] = profileIDPublic
 	}
+	if job_type != nil {
+		fields["job_type"] = job_type
+	}
 	r.jobs.Find(fields).Limit(limit).Sort("-updated_at").All(&jobs)
-	// Shuffle(jobs)
+	if random != nil {
+		Shuffle(jobs)
+	}
 	return jobs, nil
 }
 func Shuffle(slc []*Job) {
+	for i := 1; i < len(slc); i++ {
+		r := rand.Intn(i + 1)
+		if i != r {
+			slc[r], slc[i] = slc[i], slc[r]
+		}
+	}
+}
+func ShuffleProfile(slc []*Profile) {
 	for i := 1; i < len(slc); i++ {
 		r := rand.Intn(i + 1)
 		if i != r {

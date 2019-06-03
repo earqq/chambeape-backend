@@ -5,9 +5,9 @@ schema {
 
 type Query {
     profile(id_public: String!): Profile!
-    profiles: [Profile]!
+    profiles(limit:Int!,profile_type:Int,search:String,worker_type:Int,random:Boolean): [Profile]!
     job(id_public:String!): Job!
-    jobs(profile_id_public:String,start_date:String,end_date:String,state:Boolean,search:String,limit:Int!): [Job]!
+    jobs(profile_id_public:String,end_date:String,state:Boolean,search:String,limit:Int!,job_type:Int,random:Boolean): [Job]!
 }
 type Mutation {
     createProfile(input: NewProfile!): Profile!
@@ -21,13 +21,11 @@ type Profile {
     profile_type: Int!
     names: String!
     email: String!
-    available_weeks: Int!
+    available_weeks: Int!    
     birthdate: String!
     phone: String!
     img: String!    
-}
-type Task{
-    description:String!
+    worker:Worker!
 }
 type JobOwner{
     id_public:String!
@@ -49,18 +47,23 @@ type Location {
 type Job {
     id: ID!
     title: String!
-    tasks: [Task!]
     id_public:String!
     end_date: String!
     job_type: Int!
     job_type_description: String!
     visits:Int!
     calls:Int!
-    price:Float!
+    validate:Boolean!
     state:Boolean!
     location:Location!
     owner:JobOwner!
 
+}
+type Worker {    
+    worker_type:Int
+    description: Int
+    location:Location
+    end_date: String
 }
 input NewJobOwner{
     id_public:String!
@@ -81,29 +84,27 @@ input AddLocation {
 }
 input NewJob {
     title: String!
-    tasks: [NewTask!]
     end_date: String!
     id_public:String!
     state:Boolean!
+    validate:Boolean!
     visits:Int!
     calls:Int!
     job_type: Int!
     job_type_description: String!
-    price: Float!
     location:AddLocation!
     owner:NewJobOwner!
 }
 input UpdateJob {
     title: String
     id_public:String!
-    tasks: [NewTask]
     state:Boolean
     end_date: String
+    validate:Boolean!
     job_type: Int
     job_type_description: String
     visits:Int
     calls:Int
-    price: Float
     location:AddLocation
     owner:NewJobOwner
 }
@@ -126,7 +127,11 @@ input UpdateProfile {
     birthdate: String
     phone: String
     profile_type: Int
+    worker:AddWorker
 }
-input NewTask{
-    description: String
+input AddWorker{
+    worker_type:Int
+    description:String
+    location:AddLocation
+    end_date:String
 }
