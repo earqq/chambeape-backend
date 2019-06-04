@@ -27,7 +27,7 @@ func main() {
 	})
 
 	r := mux.NewRouter()
-
+	
 	r.Handle("/", handler.Playground("User", "/graphql"))
 	r.Handle("/graphql", c.Handler(handler.GraphQL(graphql.NewExecutableSchema(graphql.New()),
 		handler.WebsocketUpgrader(websocket.Upgrader{
