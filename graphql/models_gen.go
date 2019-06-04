@@ -6,7 +6,7 @@ type AddWorker struct {
 	WorkerType  *int         `json:"worker_type" bson:"worker_type"`
 	Description *string      `json:"description" bson:"description"`
 	Location    *AddLocation `json:"location"`
-	EndDate     *string      `json:"end_date"`
+	EndDate     *string      `json:"end_date" bson:"end_date"`
 }
 
 type AddLocation struct {
