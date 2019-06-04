@@ -257,11 +257,6 @@ func (r *queryResolver) Profile(ctx context.Context, public_id string) (*Profile
 }
 func (r *queryResolver) Profiles(ctx context.Context, limit int, profile_type *int, search *string, worker_type *int, random *bool) ([]*Profile, error) {
 	var profiles []*Profile
-
-	r.profiles.Find(bson.M{}).All(&profiles)
-	fmt.Print(profiles)
-	return profiles, nil
-
 	var fields = bson.M{}
 	if profile_type != nil {
 		fields["profile_type"] = profile_type
@@ -284,7 +279,7 @@ func (r *queryResolver) Profiles(ctx context.Context, limit int, profile_type *i
 
 func (r *queryResolver) Job(ctx context.Context, id_public string) (*Job, error) {
 	var job Job
-
+	fmt.Println("probando ando2 ")
 	if err := r.jobs.Find(bson.M{"id_public": id_public}).One(&job); err != nil {
 		return &Job{}, err
 	}
