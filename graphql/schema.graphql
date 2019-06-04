@@ -61,7 +61,7 @@ type Job {
 }
 type Worker {    
     worker_type:Int
-    description: Int
+    description: String
     location:Location
     end_date: String
 }

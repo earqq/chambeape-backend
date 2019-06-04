@@ -647,7 +647,7 @@ type Job {
 }
 type Worker {    
     worker_type:Int
-    description: Int
+    description: String
     location:Location
     end_date: String
 }
@@ -2205,10 +2205,10 @@ func (ec *executionContext) _Worker_description(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*int)
+	res := resTmp.(*string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Worker_location(ctx context.Context, field graphql.CollectedField, obj *Worker) graphql.Marshaler {
