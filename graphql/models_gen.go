@@ -81,6 +81,7 @@ type NewProfile struct {
 	Names       string  `json:"names"`
 	IDPublic    string  `json:"id_public" bson:"id_public"`
 	Birthdate   *string `json:"birthdate"`
+	Public      *bool   `json:"public"`
 	Phone       *string `json:"phone"`
 	ProfileType int     `json:"profile_type" bson:"profile_type"`
 	Img         *string `json:"img"`
@@ -92,6 +93,7 @@ type Profile struct {
 	ProfileType    int    `json:"profile_type" bson:"profile_type"`
 	Names          string `json:"names"`
 	Email          string `json:"email"`
+	Public         bool   `json:"public"`
 	Birthdate      string `json:"birthdate"`
 	AvailableWeeks int    `json:"available_weeks"  bson:"available_weeks"`
 	Phone          string `json:"phone"`
@@ -119,6 +121,7 @@ type UpdateProfile struct {
 	Img            *string    `json:"img"`
 	Email          *string    `json:"email"`
 	Birthdate      *string    `json:"birthdate"`
+	Public         *bool      `json:"public"`
 	AvailableWeeks *int       `json:"available_weeks"  bson:"available_weeks"`
 	Phone          *string    `json:"phone"`
 	ProfileType    *int       `json:"profile_type" bson:"profile_type"`

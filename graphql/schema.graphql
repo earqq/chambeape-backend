@@ -5,7 +5,7 @@ schema {
 
 type Query {
     profile(id_public: String!): Profile!
-    profiles(limit:Int!,profile_type:Int,search:String,worker_type:Int,random:Boolean): [Profile]!
+    profiles(limit:Int!,profile_type:Int,search:String,worker_type:Int,random:Boolean,public:Boolean): [Profile]!
     job(id_public:String!): Job!
     jobs(profile_id_public:String,end_date:String,state:Boolean,search:String,limit:Int!,job_type:Int,random:Boolean): [Job]!
 }
@@ -23,6 +23,7 @@ type Profile {
     email: String!
     available_weeks: Int!    
     birthdate: String!
+    public: Boolean!
     phone: String!
     img: String!    
     worker:Worker!
@@ -112,7 +113,7 @@ input NewProfile {
     email: String
     names: String!  
     id_public:String!
-    birthdate: String
+    birthdate: String    
     phone: String
     profile_type: Int!
     img: String
@@ -123,6 +124,7 @@ input UpdateProfile {
     names: String
     img: String
     email: String
+    public: Boolean
     available_weeks: Int
     birthdate: String
     phone: String
