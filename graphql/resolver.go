@@ -54,7 +54,6 @@ func (r *mutationResolver) CreateProfile(ctx context.Context, input NewProfile) 
 		"id_public":       input.IDPublic,
 		"phone":           input.Phone,
 		"available_weeks": 4,
-		"public":          false,
 		"updated_at":      time.Now().Local(),
 		"img":             input.Img})
 	if err != nil {
@@ -104,10 +103,6 @@ func (r *mutationResolver) UpdateProfile(ctx context.Context, input UpdateProfil
 	}
 	if input.AvailableWeeks != nil {
 		fields["available_weeks"] = *input.AvailableWeeks
-		update = true
-	}
-	if input.Public != nil {
-		fields["public"] = *input.Public
 		update = true
 	}
 	if input.Worker != nil {
@@ -260,7 +255,7 @@ func (r *queryResolver) Profile(ctx context.Context, public_id string) (*Profile
 
 	return &user, nil
 }
-func (r *queryResolver) Profiles(ctx context.Context, limit int, profile_type *int, search *string, worker_type *int, random *bool, public *bool) ([]*Profile, error) {
+func (r *queryResolver) Profiles(ctx context.Context, limit int, profile_type *int, search *string, worker_type *int, random *bool, worker_public *bool) ([]*Profile, error) {
 	var profiles []*Profile
 	var fields = bson.M{}
 	if profile_type != nil {
@@ -275,8 +270,8 @@ func (r *queryResolver) Profiles(ctx context.Context, limit int, profile_type *i
 	if worker_type != nil {
 		fields["worker.worker_type"] = worker_type
 	}
-	if public != nil {
-		fields["public"] = public
+	if worker_public != nil {
+		fields["worker.public"] = worker_public
 	}
 	r.profiles.Find(fields).Limit(limit).Sort("-updated_at").All(&profiles)
 	if random != nil {

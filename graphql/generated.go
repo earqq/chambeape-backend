@@ -90,7 +90,6 @@ type ComplexityRoot struct {
 		Email          func(childComplexity int) int
 		AvailableWeeks func(childComplexity int) int
 		Birthdate      func(childComplexity int) int
-		Public         func(childComplexity int) int
 		Phone          func(childComplexity int) int
 		Img            func(childComplexity int) int
 		Worker         func(childComplexity int) int
@@ -98,7 +97,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		Profile  func(childComplexity int, idPublic string) int
-		Profiles func(childComplexity int, limit int, profileType *int, search *string, workerType *int, random *bool, public *bool) int
+		Profiles func(childComplexity int, limit int, profileType *int, search *string, workerType *int, random *bool, workerPublic *bool) int
 		Job      func(childComplexity int, idPublic string) int
 		Jobs     func(childComplexity int, profileIDPublic *string, endDate *string, state *bool, search *string, limit int, jobType *int, random *bool) int
 	}
@@ -108,6 +107,7 @@ type ComplexityRoot struct {
 		Description func(childComplexity int) int
 		Location    func(childComplexity int) int
 		EndDate     func(childComplexity int) int
+		Public      func(childComplexity int) int
 	}
 }
 
@@ -119,7 +119,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Profile(ctx context.Context, idPublic string) (*Profile, error)
-	Profiles(ctx context.Context, limit int, profileType *int, search *string, workerType *int, random *bool, public *bool) ([]*Profile, error)
+	Profiles(ctx context.Context, limit int, profileType *int, search *string, workerType *int, random *bool, workerPublic *bool) ([]*Profile, error)
 	Job(ctx context.Context, idPublic string) (*Job, error)
 	Jobs(ctx context.Context, profileIDPublic *string, endDate *string, state *bool, search *string, limit int, jobType *int, random *bool) ([]*Job, error)
 }
@@ -411,13 +411,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Profile.Birthdate(childComplexity), true
 
-	case "Profile.Public":
-		if e.complexity.Profile.Public == nil {
-			break
-		}
-
-		return e.complexity.Profile.Public(childComplexity), true
-
 	case "Profile.Phone":
 		if e.complexity.Profile.Phone == nil {
 			break
@@ -461,7 +454,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Profiles(childComplexity, args["limit"].(int), args["profile_type"].(*int), args["search"].(*string), args["worker_type"].(*int), args["random"].(*bool), args["public"].(*bool)), true
+		return e.complexity.Query.Profiles(childComplexity, args["limit"].(int), args["profile_type"].(*int), args["search"].(*string), args["worker_type"].(*int), args["random"].(*bool), args["worker_public"].(*bool)), true
 
 	case "Query.Job":
 		if e.complexity.Query.Job == nil {
@@ -514,6 +507,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Worker.EndDate(childComplexity), true
+
+	case "Worker.Public":
+		if e.complexity.Worker.Public == nil {
+			break
+		}
+
+		return e.complexity.Worker.Public(childComplexity), true
 
 	}
 	return 0, false
@@ -599,7 +599,7 @@ var parsedSchema = gqlparser.MustLoadSchema(
 
 type Query {
     profile(id_public: String!): Profile!
-    profiles(limit:Int!,profile_type:Int,search:String,worker_type:Int,random:Boolean,public:Boolean): [Profile]!
+    profiles(limit:Int!,profile_type:Int,search:String,worker_type:Int,random:Boolean,worker_public:Boolean): [Profile]!
     job(id_public:String!): Job!
     jobs(profile_id_public:String,end_date:String,state:Boolean,search:String,limit:Int!,job_type:Int,random:Boolean): [Job]!
 }
@@ -616,8 +616,7 @@ type Profile {
     names: String!
     email: String!
     available_weeks: Int!    
-    birthdate: String!
-    public: Boolean!
+    birthdate: String!    
     phone: String!
     img: String!    
     worker:Worker!
@@ -659,6 +658,7 @@ type Worker {
     description: String
     location:Location
     end_date: String
+    public: Boolean
 }
 input NewJobOwner{
     id_public:String!
@@ -717,8 +717,7 @@ input UpdateProfile {
     id_public: String!
     names: String
     img: String
-    email: String
-    public: Boolean
+    email: String    
     available_weeks: Int
     birthdate: String
     phone: String
@@ -730,6 +729,7 @@ input AddWorker{
     description:String
     location:AddLocation
     end_date:String
+    public: Boolean
 }`},
 )
 
@@ -941,13 +941,13 @@ func (ec *executionContext) field_Query_profiles_args(ctx context.Context, rawAr
 	}
 	args["random"] = arg4
 	var arg5 *bool
-	if tmp, ok := rawArgs["public"]; ok {
+	if tmp, ok := rawArgs["worker_public"]; ok {
 		arg5, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["public"] = arg5
+	args["worker_public"] = arg5
 	return args, nil
 }
 
@@ -1920,32 +1920,6 @@ func (ec *executionContext) _Profile_birthdate(ctx context.Context, field graphq
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Profile_public(ctx context.Context, field graphql.CollectedField, obj *Profile) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Profile",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Public, nil
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Profile_phone(ctx context.Context, field graphql.CollectedField, obj *Profile) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -2076,7 +2050,7 @@ func (ec *executionContext) _Query_profiles(ctx context.Context, field graphql.C
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Profiles(rctx, args["limit"].(int), args["profile_type"].(*int), args["search"].(*string), args["worker_type"].(*int), args["random"].(*bool), args["public"].(*bool))
+		return ec.resolvers.Query().Profiles(rctx, args["limit"].(int), args["profile_type"].(*int), args["search"].(*string), args["worker_type"].(*int), args["random"].(*bool), args["worker_public"].(*bool))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2299,6 +2273,29 @@ func (ec *executionContext) _Worker_end_date(ctx context.Context, field graphql.
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Worker_public(ctx context.Context, field graphql.CollectedField, obj *Worker) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Worker",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Public, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) graphql.Marshaler {
@@ -3196,6 +3193,12 @@ func (ec *executionContext) unmarshalInputAddWorker(ctx context.Context, v inter
 			if err != nil {
 				return it, err
 			}
+		case "public":
+			var err error
+			it.Public, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -3475,12 +3478,6 @@ func (ec *executionContext) unmarshalInputUpdateProfile(ctx context.Context, v i
 		case "email":
 			var err error
 			it.Email, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "public":
-			var err error
-			it.Public, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3784,11 +3781,6 @@ func (ec *executionContext) _Profile(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
-		case "public":
-			out.Values[i] = ec._Profile_public(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
 		case "phone":
 			out.Values[i] = ec._Profile_phone(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -3920,6 +3912,8 @@ func (ec *executionContext) _Worker(ctx context.Context, sel ast.SelectionSet, o
 			out.Values[i] = ec._Worker_location(ctx, field, obj)
 		case "end_date":
 			out.Values[i] = ec._Worker_end_date(ctx, field, obj)
+		case "public":
+			out.Values[i] = ec._Worker_public(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
