@@ -19,6 +19,7 @@ import (
 type Resolver struct {
 	profiles *mgo.Collection
 	jobs     *mgo.Collection
+	videos   *mgo.Collection
 }
 
 func New() Config {
@@ -26,6 +27,7 @@ func New() Config {
 		Resolvers: &Resolver{
 			profiles: db.GetCollection("profiles"),
 			jobs:     db.GetCollection("jobs"),
+			videos:   db.GetCollection("videos"),
 		},
 	}
 }
@@ -282,7 +284,6 @@ func (r *queryResolver) Profiles(ctx context.Context, limit int, profile_type *i
 
 func (r *queryResolver) Job(ctx context.Context, id_public string) (*Job, error) {
 	var job Job
-	fmt.Println("probando ando2 ")
 	if err := r.jobs.Find(bson.M{"id_public": id_public}).One(&job); err != nil {
 		return &Job{}, err
 	}
@@ -333,4 +334,10 @@ func ShuffleProfile(slc []*Profile) {
 			slc[r], slc[i] = slc[i], slc[r]
 		}
 	}
+}
+
+func (r *queryResolver) Videos(ctx context.Context) ([]*Video, error) {
+	var videos []*Video
+	r.videos.Find(nil).All(&videos)
+	return videos, nil
 }

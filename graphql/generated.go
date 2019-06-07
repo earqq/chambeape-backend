@@ -100,6 +100,18 @@ type ComplexityRoot struct {
 		Profiles func(childComplexity int, limit int, profileType *int, search *string, workerType *int, random *bool, workerPublic *bool) int
 		Job      func(childComplexity int, idPublic string) int
 		Jobs     func(childComplexity int, profileIDPublic *string, endDate *string, state *bool, search *string, limit int, jobType *int, random *bool) int
+		Videos   func(childComplexity int) int
+	}
+
+	Shares struct {
+		Facebook func(childComplexity int) int
+		Whatsapp func(childComplexity int) int
+	}
+
+	Video struct {
+		Title       func(childComplexity int) int
+		Description func(childComplexity int) int
+		URL         func(childComplexity int) int
 	}
 
 	Worker struct {
@@ -108,6 +120,7 @@ type ComplexityRoot struct {
 		Location    func(childComplexity int) int
 		EndDate     func(childComplexity int) int
 		Public      func(childComplexity int) int
+		Shares      func(childComplexity int) int
 	}
 }
 
@@ -122,6 +135,7 @@ type QueryResolver interface {
 	Profiles(ctx context.Context, limit int, profileType *int, search *string, workerType *int, random *bool, workerPublic *bool) ([]*Profile, error)
 	Job(ctx context.Context, idPublic string) (*Job, error)
 	Jobs(ctx context.Context, profileIDPublic *string, endDate *string, state *bool, search *string, limit int, jobType *int, random *bool) ([]*Job, error)
+	Videos(ctx context.Context) ([]*Video, error)
 }
 
 type executableSchema struct {
@@ -480,6 +494,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Jobs(childComplexity, args["profile_id_public"].(*string), args["end_date"].(*string), args["state"].(*bool), args["search"].(*string), args["limit"].(int), args["job_type"].(*int), args["random"].(*bool)), true
 
+	case "Query.Videos":
+		if e.complexity.Query.Videos == nil {
+			break
+		}
+
+		return e.complexity.Query.Videos(childComplexity), true
+
+	case "Shares.Facebook":
+		if e.complexity.Shares.Facebook == nil {
+			break
+		}
+
+		return e.complexity.Shares.Facebook(childComplexity), true
+
+	case "Shares.Whatsapp":
+		if e.complexity.Shares.Whatsapp == nil {
+			break
+		}
+
+		return e.complexity.Shares.Whatsapp(childComplexity), true
+
+	case "Video.Title":
+		if e.complexity.Video.Title == nil {
+			break
+		}
+
+		return e.complexity.Video.Title(childComplexity), true
+
+	case "Video.Description":
+		if e.complexity.Video.Description == nil {
+			break
+		}
+
+		return e.complexity.Video.Description(childComplexity), true
+
+	case "Video.URL":
+		if e.complexity.Video.URL == nil {
+			break
+		}
+
+		return e.complexity.Video.URL(childComplexity), true
+
 	case "Worker.WorkerType":
 		if e.complexity.Worker.WorkerType == nil {
 			break
@@ -514,6 +570,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Worker.Public(childComplexity), true
+
+	case "Worker.Shares":
+		if e.complexity.Worker.Shares == nil {
+			break
+		}
+
+		return e.complexity.Worker.Shares(childComplexity), true
 
 	}
 	return 0, false
@@ -602,6 +665,7 @@ type Query {
     profiles(limit:Int!,profile_type:Int,search:String,worker_type:Int,random:Boolean,worker_public:Boolean): [Profile]!
     job(id_public:String!): Job!
     jobs(profile_id_public:String,end_date:String,state:Boolean,search:String,limit:Int!,job_type:Int,random:Boolean): [Job]!
+    videos: [Video]!
 }
 type Mutation {
     createProfile(input: NewProfile!): Profile!
@@ -651,7 +715,10 @@ type Job {
     state:Boolean!
     location:Location!
     owner:JobOwner!
-
+}
+type Shares {    
+    facebook: String
+    whatsapp: String
 }
 type Worker {    
     worker_type:Int
@@ -659,6 +726,17 @@ type Worker {
     location:Location
     end_date: String
     public: Boolean
+    shares:Shares
+}
+type Video {    
+    title:String!
+    description: String!
+    url: String!    
+}
+input NewVideo{
+    title:String!
+    description: String!
+    url: String!  
 }
 input NewJobOwner{
     id_public:String!
@@ -724,12 +802,17 @@ input UpdateProfile {
     profile_type: Int
     worker:AddWorker
 }
+input AddShares {    
+    facebook: String
+    whatsapp: String
+}
 input AddWorker{
     worker_type:Int
     description:String
     location:AddLocation
     end_date:String
     public: Boolean
+    shares:AddShares
 }`},
 )
 
@@ -2130,6 +2213,32 @@ func (ec *executionContext) _Query_jobs(ctx context.Context, field graphql.Colle
 	return ec.marshalNJob2ᚕᚖchambeapeᚋgraphqlᚐJob(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_videos(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Query",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Videos(rctx)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*Video)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNVideo2ᚕᚖchambeapeᚋgraphqlᚐVideo(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -2181,6 +2290,130 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalO__Schema2ᚖchambeapeᚋvendorᚋgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Shares_facebook(ctx context.Context, field graphql.CollectedField, obj *Shares) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Shares",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Facebook, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Shares_whatsapp(ctx context.Context, field graphql.CollectedField, obj *Shares) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Shares",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Whatsapp, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Video_title(ctx context.Context, field graphql.CollectedField, obj *Video) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Video",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Title, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Video_description(ctx context.Context, field graphql.CollectedField, obj *Video) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Video",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Video_url(ctx context.Context, field graphql.CollectedField, obj *Video) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Video",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.URL, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Worker_worker_type(ctx context.Context, field graphql.CollectedField, obj *Worker) graphql.Marshaler {
@@ -2296,6 +2529,29 @@ func (ec *executionContext) _Worker_public(ctx context.Context, field graphql.Co
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Worker_shares(ctx context.Context, field graphql.CollectedField, obj *Worker) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Worker",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Shares, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*Shares)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOShares2ᚖchambeapeᚋgraphqlᚐShares(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) graphql.Marshaler {
@@ -3163,6 +3419,30 @@ func (ec *executionContext) unmarshalInputAddLocation(ctx context.Context, v int
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputAddShares(ctx context.Context, v interface{}) (AddShares, error) {
+	var it AddShares
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "facebook":
+			var err error
+			it.Facebook, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "whatsapp":
+			var err error
+			it.Whatsapp, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputAddWorker(ctx context.Context, v interface{}) (AddWorker, error) {
 	var it AddWorker
 	var asMap = v.(map[string]interface{})
@@ -3196,6 +3476,12 @@ func (ec *executionContext) unmarshalInputAddWorker(ctx context.Context, v inter
 		case "public":
 			var err error
 			it.Public, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "shares":
+			var err error
+			it.Shares, err = ec.unmarshalOAddShares2ᚖchambeapeᚋgraphqlᚐAddShares(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3364,6 +3650,36 @@ func (ec *executionContext) unmarshalInputNewProfile(ctx context.Context, v inte
 		case "img":
 			var err error
 			it.Img, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputNewVideo(ctx context.Context, v interface{}) (NewVideo, error) {
+	var it NewVideo
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "title":
+			var err error
+			it.Title, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "url":
+			var err error
+			it.URL, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3878,10 +4194,87 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "videos":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_videos(ctx, field)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
 			out.Values[i] = ec._Query___schema(ctx, field)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+var sharesImplementors = []string{"Shares"}
+
+func (ec *executionContext) _Shares(ctx context.Context, sel ast.SelectionSet, obj *Shares) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, sharesImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	invalid := false
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Shares")
+		case "facebook":
+			out.Values[i] = ec._Shares_facebook(ctx, field, obj)
+		case "whatsapp":
+			out.Values[i] = ec._Shares_whatsapp(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+var videoImplementors = []string{"Video"}
+
+func (ec *executionContext) _Video(ctx context.Context, sel ast.SelectionSet, obj *Video) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, videoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	invalid := false
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Video")
+		case "title":
+			out.Values[i] = ec._Video_title(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "description":
+			out.Values[i] = ec._Video_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "url":
+			out.Values[i] = ec._Video_url(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3914,6 +4307,8 @@ func (ec *executionContext) _Worker(ctx context.Context, sel ast.SelectionSet, o
 			out.Values[i] = ec._Worker_end_date(ctx, field, obj)
 		case "public":
 			out.Values[i] = ec._Worker_public(ctx, field, obj)
+		case "shares":
+			out.Values[i] = ec._Worker_shares(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4336,6 +4731,43 @@ func (ec *executionContext) unmarshalNUpdateProfile2chambeapeᚋgraphqlᚐUpdate
 	return ec.unmarshalInputUpdateProfile(ctx, v)
 }
 
+func (ec *executionContext) marshalNVideo2ᚕᚖchambeapeᚋgraphqlᚐVideo(ctx context.Context, sel ast.SelectionSet, v []*Video) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOVideo2ᚖchambeapeᚋgraphqlᚐVideo(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalNWorker2chambeapeᚋgraphqlᚐWorker(ctx context.Context, sel ast.SelectionSet, v Worker) graphql.Marshaler {
 	return ec._Worker(ctx, sel, &v)
 }
@@ -4566,6 +4998,18 @@ func (ec *executionContext) unmarshalOAddLocation2ᚖchambeapeᚋgraphqlᚐAddLo
 	return &res, err
 }
 
+func (ec *executionContext) unmarshalOAddShares2chambeapeᚋgraphqlᚐAddShares(ctx context.Context, v interface{}) (AddShares, error) {
+	return ec.unmarshalInputAddShares(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOAddShares2ᚖchambeapeᚋgraphqlᚐAddShares(ctx context.Context, v interface{}) (*AddShares, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOAddShares2chambeapeᚋgraphqlᚐAddShares(ctx, v)
+	return &res, err
+}
+
 func (ec *executionContext) unmarshalOAddWorker2chambeapeᚋgraphqlᚐAddWorker(ctx context.Context, v interface{}) (AddWorker, error) {
 	return ec.unmarshalInputAddWorker(ctx, v)
 }
@@ -4669,6 +5113,17 @@ func (ec *executionContext) marshalOProfile2ᚖchambeapeᚋgraphqlᚐProfile(ctx
 	return ec._Profile(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOShares2chambeapeᚋgraphqlᚐShares(ctx context.Context, sel ast.SelectionSet, v Shares) graphql.Marshaler {
+	return ec._Shares(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOShares2ᚖchambeapeᚋgraphqlᚐShares(ctx context.Context, sel ast.SelectionSet, v *Shares) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Shares(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
 	return graphql.UnmarshalString(v)
 }
@@ -4690,6 +5145,17 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return ec.marshalOString2string(ctx, sel, *v)
+}
+
+func (ec *executionContext) marshalOVideo2chambeapeᚋgraphqlᚐVideo(ctx context.Context, sel ast.SelectionSet, v Video) graphql.Marshaler {
+	return ec._Video(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOVideo2ᚖchambeapeᚋgraphqlᚐVideo(ctx context.Context, sel ast.SelectionSet, v *Video) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Video(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕchambeapeᚋvendorᚋgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValue(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

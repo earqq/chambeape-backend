@@ -8,6 +8,7 @@ type Query {
     profiles(limit:Int!,profile_type:Int,search:String,worker_type:Int,random:Boolean,worker_public:Boolean): [Profile]!
     job(id_public:String!): Job!
     jobs(profile_id_public:String,end_date:String,state:Boolean,search:String,limit:Int!,job_type:Int,random:Boolean): [Job]!
+    videos: [Video]!
 }
 type Mutation {
     createProfile(input: NewProfile!): Profile!
@@ -57,7 +58,10 @@ type Job {
     state:Boolean!
     location:Location!
     owner:JobOwner!
-
+}
+type Shares {    
+    facebook: String
+    whatsapp: String
 }
 type Worker {    
     worker_type:Int
@@ -65,6 +69,17 @@ type Worker {
     location:Location
     end_date: String
     public: Boolean
+    shares:Shares
+}
+type Video {    
+    title:String!
+    description: String!
+    url: String!    
+}
+input NewVideo{
+    title:String!
+    description: String!
+    url: String!  
 }
 input NewJobOwner{
     id_public:String!
@@ -130,10 +145,15 @@ input UpdateProfile {
     profile_type: Int
     worker:AddWorker
 }
+input AddShares {    
+    facebook: String
+    whatsapp: String
+}
 input AddWorker{
     worker_type:Int
     description:String
     location:AddLocation
     end_date:String
     public: Boolean
+    shares:AddShares
 }
