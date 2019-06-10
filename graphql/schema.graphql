@@ -15,6 +15,7 @@ type Mutation {
     updateProfile(input: UpdateProfile!): Profile!
     createJob(input: NewJob!): Job!
     updateJob(input: UpdateJob!): Job!
+    createVideo(input: NewVideo!): Video!
 }
 type Profile {
     id: ID!
@@ -73,12 +74,12 @@ type Worker {
 }
 type Video {    
     title:String!
-    description: String!
+    worker_type: Int!
     url: String!    
 }
 input NewVideo{
     title:String!
-    description: String!
+    worker_type: Int!
     url: String!  
 }
 input NewJobOwner{

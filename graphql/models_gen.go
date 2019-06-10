@@ -94,9 +94,9 @@ type NewProfile struct {
 }
 
 type NewVideo struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	URL         string `json:"url"`
+	Title      string `json:"title"`
+	WorkerType int    `json:"worker_type" bson:"worker_type"`
+	URL        string `json:"url"`
 }
 
 type Profile struct {
@@ -144,9 +144,9 @@ type UpdateProfile struct {
 }
 
 type Video struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	URL         string `json:"url"`
+	Title      string `json:"title"`
+	WorkerType int    `json:"worker_type" bson:"worker_type"`
+	URL        string `json:"url"`
 }
 
 type Worker struct {

@@ -80,6 +80,7 @@ type ComplexityRoot struct {
 		UpdateProfile func(childComplexity int, input UpdateProfile) int
 		CreateJob     func(childComplexity int, input NewJob) int
 		UpdateJob     func(childComplexity int, input UpdateJob) int
+		CreateVideo   func(childComplexity int, input NewVideo) int
 	}
 
 	Profile struct {
@@ -109,9 +110,9 @@ type ComplexityRoot struct {
 	}
 
 	Video struct {
-		Title       func(childComplexity int) int
-		Description func(childComplexity int) int
-		URL         func(childComplexity int) int
+		Title      func(childComplexity int) int
+		WorkerType func(childComplexity int) int
+		URL        func(childComplexity int) int
 	}
 
 	Worker struct {
@@ -129,6 +130,7 @@ type MutationResolver interface {
 	UpdateProfile(ctx context.Context, input UpdateProfile) (*Profile, error)
 	CreateJob(ctx context.Context, input NewJob) (*Job, error)
 	UpdateJob(ctx context.Context, input UpdateJob) (*Job, error)
+	CreateVideo(ctx context.Context, input NewVideo) (*Video, error)
 }
 type QueryResolver interface {
 	Profile(ctx context.Context, idPublic string) (*Profile, error)
@@ -376,6 +378,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateJob(childComplexity, args["input"].(UpdateJob)), true
 
+	case "Mutation.CreateVideo":
+		if e.complexity.Mutation.CreateVideo == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createVideo_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateVideo(childComplexity, args["input"].(NewVideo)), true
+
 	case "Profile.ID":
 		if e.complexity.Profile.ID == nil {
 			break
@@ -522,12 +536,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Video.Title(childComplexity), true
 
-	case "Video.Description":
-		if e.complexity.Video.Description == nil {
+	case "Video.WorkerType":
+		if e.complexity.Video.WorkerType == nil {
 			break
 		}
 
-		return e.complexity.Video.Description(childComplexity), true
+		return e.complexity.Video.WorkerType(childComplexity), true
 
 	case "Video.URL":
 		if e.complexity.Video.URL == nil {
@@ -672,6 +686,7 @@ type Mutation {
     updateProfile(input: UpdateProfile!): Profile!
     createJob(input: NewJob!): Job!
     updateJob(input: UpdateJob!): Job!
+    createVideo(input: NewVideo!): Video!
 }
 type Profile {
     id: ID!
@@ -730,12 +745,12 @@ type Worker {
 }
 type Video {    
     title:String!
-    description: String!
+    worker_type: Int!
     url: String!    
 }
 input NewVideo{
     title:String!
-    description: String!
+    worker_type: Int!
     url: String!  
 }
 input NewJobOwner{
@@ -840,6 +855,20 @@ func (ec *executionContext) field_Mutation_createProfile_args(ctx context.Contex
 	var arg0 NewProfile
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalNNewProfile2chambeapeᚋgraphqlᚐNewProfile(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createVideo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 NewVideo
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNNewVideo2chambeapeᚋgraphqlᚐNewVideo(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1821,6 +1850,39 @@ func (ec *executionContext) _Mutation_updateJob(ctx context.Context, field graph
 	return ec.marshalNJob2ᚖchambeapeᚋgraphqlᚐJob(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_createVideo(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Mutation",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createVideo_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateVideo(rctx, args["input"].(NewVideo))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*Video)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNVideo2ᚖchambeapeᚋgraphqlᚐVideo(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Profile_id(ctx context.Context, field graphql.CollectedField, obj *Profile) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -2364,7 +2426,7 @@ func (ec *executionContext) _Video_title(ctx context.Context, field graphql.Coll
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Video_description(ctx context.Context, field graphql.CollectedField, obj *Video) graphql.Marshaler {
+func (ec *executionContext) _Video_worker_type(ctx context.Context, field graphql.CollectedField, obj *Video) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -2376,7 +2438,7 @@ func (ec *executionContext) _Video_description(ctx context.Context, field graphq
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Description, nil
+		return obj.WorkerType, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2384,10 +2446,10 @@ func (ec *executionContext) _Video_description(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Video_url(ctx context.Context, field graphql.CollectedField, obj *Video) graphql.Marshaler {
@@ -3671,9 +3733,9 @@ func (ec *executionContext) unmarshalInputNewVideo(ctx context.Context, v interf
 			if err != nil {
 				return it, err
 			}
-		case "description":
+		case "worker_type":
 			var err error
-			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			it.WorkerType, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4040,6 +4102,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "createVideo":
+			out.Values[i] = ec._Mutation_createVideo(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4265,8 +4332,8 @@ func (ec *executionContext) _Video(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
-		case "description":
-			out.Values[i] = ec._Video_description(ctx, field, obj)
+		case "worker_type":
+			out.Values[i] = ec._Video_worker_type(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
@@ -4664,6 +4731,10 @@ func (ec *executionContext) unmarshalNNewProfile2chambeapeᚋgraphqlᚐNewProfil
 	return ec.unmarshalInputNewProfile(ctx, v)
 }
 
+func (ec *executionContext) unmarshalNNewVideo2chambeapeᚋgraphqlᚐNewVideo(ctx context.Context, v interface{}) (NewVideo, error) {
+	return ec.unmarshalInputNewVideo(ctx, v)
+}
+
 func (ec *executionContext) marshalNProfile2chambeapeᚋgraphqlᚐProfile(ctx context.Context, sel ast.SelectionSet, v Profile) graphql.Marshaler {
 	return ec._Profile(ctx, sel, &v)
 }
@@ -4731,6 +4802,10 @@ func (ec *executionContext) unmarshalNUpdateProfile2chambeapeᚋgraphqlᚐUpdate
 	return ec.unmarshalInputUpdateProfile(ctx, v)
 }
 
+func (ec *executionContext) marshalNVideo2chambeapeᚋgraphqlᚐVideo(ctx context.Context, sel ast.SelectionSet, v Video) graphql.Marshaler {
+	return ec._Video(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNVideo2ᚕᚖchambeapeᚋgraphqlᚐVideo(ctx context.Context, sel ast.SelectionSet, v []*Video) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -4766,6 +4841,16 @@ func (ec *executionContext) marshalNVideo2ᚕᚖchambeapeᚋgraphqlᚐVideo(ctx 
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalNVideo2ᚖchambeapeᚋgraphqlᚐVideo(ctx context.Context, sel ast.SelectionSet, v *Video) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Video(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNWorker2chambeapeᚋgraphqlᚐWorker(ctx context.Context, sel ast.SelectionSet, v Worker) graphql.Marshaler {
