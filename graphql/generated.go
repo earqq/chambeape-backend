@@ -54,6 +54,7 @@ type ComplexityRoot struct {
 		State              func(childComplexity int) int
 		Location           func(childComplexity int) int
 		Owner              func(childComplexity int) int
+		UpdatedAt          func(childComplexity int) int
 	}
 
 	JobOwner struct {
@@ -238,6 +239,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Job.Owner(childComplexity), true
+
+	case "Job.UpdatedAt":
+		if e.complexity.Job.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.Job.UpdatedAt(childComplexity), true
 
 	case "JobOwner.IDPublic":
 		if e.complexity.JobOwner.IDPublic == nil {
@@ -730,6 +738,7 @@ type Job {
     state:Boolean!
     location:Location!
     owner:JobOwner!
+    updated_at:String
 }
 type Shares {    
     facebook: String
@@ -1405,6 +1414,29 @@ func (ec *executionContext) _Job_owner(ctx context.Context, field graphql.Collec
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNJobOwner2chambeapeᚋgraphqlᚐJobOwner(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Job_updated_at(ctx context.Context, field graphql.CollectedField, obj *Job) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Job",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _JobOwner_id_public(ctx context.Context, field graphql.CollectedField, obj *JobOwner) graphql.Marshaler {
@@ -3974,6 +4006,8 @@ func (ec *executionContext) _Job(ctx context.Context, sel ast.SelectionSet, obj 
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "updated_at":
+			out.Values[i] = ec._Job_updated_at(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
