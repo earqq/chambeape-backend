@@ -58,8 +58,7 @@ type Job {
     validate:Boolean!
     state:Boolean!
     location:Location!
-    owner:JobOwner!
-    updated_at:String
+    owner:JobOwner!    
 }
 type Shares {    
     facebook: String

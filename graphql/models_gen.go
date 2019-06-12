@@ -35,7 +35,6 @@ type Job struct {
 	EndDate            string   `json:"end_date" bson:"end_date"`
 	JobType            int      `json:"job_type" bson:"job_type"`
 	JobTypeDescription string   `json:"job_type_description" bson:"job_type_description"`
-	UpdatedAt          string   `json:"updated_at" bson:"updated_at"`
 	Visits             int      `json:"visits"`
 	Calls              int      `json:"calls"`
 	Validate           bool     `json:"validate"`
