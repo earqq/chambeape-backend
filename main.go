@@ -13,7 +13,7 @@ import (
 	"github.com/rs/cors"
 )
 
-const defaultPort = "8085"
+const defaultPort = "8083"
 
 func main() {
 	port := os.Getenv("PORT")
@@ -27,7 +27,7 @@ func main() {
 	})
 
 	r := mux.NewRouter()
-	
+
 	r.Handle("/", handler.Playground("User", "/graphql"))
 	r.Handle("/graphql", c.Handler(handler.GraphQL(graphql.NewExecutableSchema(graphql.New()),
 		handler.WebsocketUpgrader(websocket.Upgrader{
@@ -39,5 +39,5 @@ func main() {
 
 	http.Handle("/", r)
 
-	log.Fatal(http.ListenAndServe(":8085", nil))
+	log.Fatal(http.ListenAndServe(":8083", nil))
 }
