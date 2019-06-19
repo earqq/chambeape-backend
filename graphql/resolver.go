@@ -130,21 +130,14 @@ func (r *mutationResolver) UpdateProfile(ctx context.Context, input UpdateProfil
 }
 func (r *mutationResolver) CreateVideo(ctx context.Context, input NewVideo) (*Video, error) {
 	var video Video
-
-	count, err := r.profiles.Find(bson.M{"id_public": input.URL}).Count()
-	if err != nil {
-		return &Video{}, err
-	} else if count > 0 {
-		return &Video{}, errors.New("user with that id public already exists")
-	}
-	err = r.profiles.Insert(bson.M{"title": input.Title,
+	err := r.videos.Insert(bson.M{"title": input.Title,
 		"worker_type": input.WorkerType,
 		"url":         input.URL})
 	if err != nil {
 		return &Video{}, err
 	}
 
-	err = r.profiles.Find(bson.M{"URL": input.URL}).One(&video)
+	err = r.videos.Find(bson.M{"url": input.URL}).One(&video)
 	if err != nil {
 		return &Video{}, err
 	}
