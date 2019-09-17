@@ -46,6 +46,7 @@ type ComplexityRoot struct {
 		Title              func(childComplexity int) int
 		IDPublic           func(childComplexity int) int
 		EndDate            func(childComplexity int) int
+		PublicationDate    func(childComplexity int) int
 		JobType            func(childComplexity int) int
 		JobTypeDescription func(childComplexity int) int
 		Visits             func(childComplexity int) int
@@ -182,6 +183,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Job.EndDate(childComplexity), true
+
+	case "Job.PublicationDate":
+		if e.complexity.Job.PublicationDate == nil {
+			break
+		}
+
+		return e.complexity.Job.PublicationDate(childComplexity), true
 
 	case "Job.JobType":
 		if e.complexity.Job.JobType == nil {
@@ -722,6 +730,7 @@ type Job {
     title: String!
     id_public:String!
     end_date: String!
+    publication_date: String!
     job_type: Int!
     job_type_description: String!
     visits:Int!
@@ -1186,6 +1195,32 @@ func (ec *executionContext) _Job_end_date(ctx context.Context, field graphql.Col
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.EndDate, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Job_publication_date(ctx context.Context, field graphql.CollectedField, obj *Job) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Job",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PublicationDate, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -3931,6 +3966,11 @@ func (ec *executionContext) _Job(ctx context.Context, sel ast.SelectionSet, obj 
 			}
 		case "end_date":
 			out.Values[i] = ec._Job_end_date(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "publication_date":
+			out.Values[i] = ec._Job_publication_date(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}

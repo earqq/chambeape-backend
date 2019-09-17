@@ -33,6 +33,7 @@ type Job struct {
 	Title              string   `json:"title"`
 	IDPublic           string   `json:"id_public" bson:"id_public"`
 	EndDate            string   `json:"end_date" bson:"end_date"`
+	PublicationDate    string   `json:"publication_date" bson:"publication_date"`
 	JobType            int      `json:"job_type" bson:"job_type"`
 	JobTypeDescription string   `json:"job_type_description" bson:"job_type_description"`
 	Visits             int      `json:"visits"`

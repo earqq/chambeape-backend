@@ -157,8 +157,10 @@ func (r *mutationResolver) CreateJob(ctx context.Context, input NewJob) (*Job, e
 		upperLocality, _, _ := transform.String(t, *input.Location.ToSearch)
 		*input.Location.ToSearch = strings.ToLower(upperLocality)
 	}
+	tim := time.Now().Local()
 	err = r.jobs.Insert(bson.M{"title": strings.ToLower(input.Title),
 		"end_date":             input.EndDate,
+		"publication_date":     tim.Format("2006-01-02"),
 		"job_type":             input.JobType,
 		"job_type_description": strings.ToLower(input.JobTypeDescription),
 		"id_public":            input.IDPublic,

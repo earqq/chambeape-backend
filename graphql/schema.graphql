@@ -51,6 +51,7 @@ type Job {
     title: String!
     id_public:String!
     end_date: String!
+    publication_date: String!
     job_type: Int!
     job_type_description: String!
     visits:Int!
