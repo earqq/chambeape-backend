@@ -72,6 +72,12 @@ type Worker {
     end_date: String
     public: Boolean
     shares:Shares
+    experience: [Experience]
+}
+
+type Experience {
+    description: String
+    phone: String    
 }
 type Video {    
     title:String!
@@ -99,6 +105,10 @@ input AddLocation {
     area_level_2:String
     country: String
     to_search:String
+}
+input AddExperience {
+    description: String
+    phone: String    
 }
 input NewJob {
     title: String!
@@ -158,4 +168,5 @@ input AddWorker{
     end_date:String
     public: Boolean
     shares:AddShares
+    experience: [AddExperience]
 }

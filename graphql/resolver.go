@@ -74,7 +74,6 @@ func (r *mutationResolver) UpdateProfile(ctx context.Context, input UpdateProfil
 	var user Profile
 
 	update := false
-
 	if input.Names != nil && *input.Names != "" {
 		fields["names"] = *input.Names
 		update = true

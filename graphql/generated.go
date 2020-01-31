@@ -41,6 +41,11 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	Experience struct {
+		Description func(childComplexity int) int
+		Phone       func(childComplexity int) int
+	}
+
 	Job struct {
 		ID                 func(childComplexity int) int
 		Title              func(childComplexity int) int
@@ -123,6 +128,7 @@ type ComplexityRoot struct {
 		EndDate     func(childComplexity int) int
 		Public      func(childComplexity int) int
 		Shares      func(childComplexity int) int
+		Experience  func(childComplexity int) int
 	}
 }
 
@@ -155,6 +161,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Experience.Description":
+		if e.complexity.Experience.Description == nil {
+			break
+		}
+
+		return e.complexity.Experience.Description(childComplexity), true
+
+	case "Experience.Phone":
+		if e.complexity.Experience.Phone == nil {
+			break
+		}
+
+		return e.complexity.Experience.Phone(childComplexity), true
 
 	case "Job.ID":
 		if e.complexity.Job.ID == nil {
@@ -600,6 +620,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Worker.Shares(childComplexity), true
 
+	case "Worker.Experience":
+		if e.complexity.Worker.Experience == nil {
+			break
+		}
+
+		return e.complexity.Worker.Experience(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -751,6 +778,12 @@ type Worker {
     end_date: String
     public: Boolean
     shares:Shares
+    experience: [Experience]
+}
+
+type Experience {
+    description: String
+    phone: String    
 }
 type Video {    
     title:String!
@@ -778,6 +811,10 @@ input AddLocation {
     area_level_2:String
     country: String
     to_search:String
+}
+input AddExperience {
+    description: String
+    phone: String    
 }
 input NewJob {
     title: String!
@@ -837,6 +874,7 @@ input AddWorker{
     end_date:String
     public: Boolean
     shares:AddShares
+    experience: [AddExperience]
 }`},
 )
 
@@ -1103,6 +1141,52 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ***************************** args.gotpl *****************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _Experience_description(ctx context.Context, field graphql.CollectedField, obj *Experience) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Experience",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Experience_phone(ctx context.Context, field graphql.CollectedField, obj *Experience) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Experience",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Phone, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
 
 func (ec *executionContext) _Job_id(ctx context.Context, field graphql.CollectedField, obj *Job) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
@@ -2651,6 +2735,29 @@ func (ec *executionContext) _Worker_shares(ctx context.Context, field graphql.Co
 	return ec.marshalOShares2ᚖchambeapeᚋgraphqlᚐShares(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Worker_experience(ctx context.Context, field graphql.CollectedField, obj *Worker) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Worker",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Experience, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*Experience)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOExperience2ᚕᚖchambeapeᚋgraphqlᚐExperience(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -3450,6 +3557,30 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputAddExperience(ctx context.Context, v interface{}) (AddExperience, error) {
+	var it AddExperience
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "description":
+			var err error
+			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "phone":
+			var err error
+			it.Phone, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputAddLocation(ctx context.Context, v interface{}) (AddLocation, error) {
 	var it AddLocation
 	var asMap = v.(map[string]interface{})
@@ -3579,6 +3710,12 @@ func (ec *executionContext) unmarshalInputAddWorker(ctx context.Context, v inter
 		case "shares":
 			var err error
 			it.Shares, err = ec.unmarshalOAddShares2ᚖchambeapeᚋgraphqlᚐAddShares(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "experience":
+			var err error
+			it.Experience, err = ec.unmarshalOAddExperience2ᚕᚖchambeapeᚋgraphqlᚐAddExperience(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3937,6 +4074,32 @@ func (ec *executionContext) unmarshalInputUpdateProfile(ctx context.Context, v i
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
+
+var experienceImplementors = []string{"Experience"}
+
+func (ec *executionContext) _Experience(ctx context.Context, sel ast.SelectionSet, obj *Experience) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, experienceImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	invalid := false
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Experience")
+		case "description":
+			out.Values[i] = ec._Experience_description(ctx, field, obj)
+		case "phone":
+			out.Values[i] = ec._Experience_phone(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
 
 var jobImplementors = []string{"Job"}
 
@@ -4416,6 +4579,8 @@ func (ec *executionContext) _Worker(ctx context.Context, sel ast.SelectionSet, o
 			out.Values[i] = ec._Worker_public(ctx, field, obj)
 		case "shares":
 			out.Values[i] = ec._Worker_shares(ctx, field, obj)
+		case "experience":
+			out.Values[i] = ec._Worker_experience(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5111,6 +5276,38 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return graphql.MarshalString(v)
 }
 
+func (ec *executionContext) unmarshalOAddExperience2chambeapeᚋgraphqlᚐAddExperience(ctx context.Context, v interface{}) (AddExperience, error) {
+	return ec.unmarshalInputAddExperience(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOAddExperience2ᚕᚖchambeapeᚋgraphqlᚐAddExperience(ctx context.Context, v interface{}) ([]*AddExperience, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*AddExperience, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalOAddExperience2ᚖchambeapeᚋgraphqlᚐAddExperience(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOAddExperience2ᚖchambeapeᚋgraphqlᚐAddExperience(ctx context.Context, v interface{}) (*AddExperience, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOAddExperience2chambeapeᚋgraphqlᚐAddExperience(ctx, v)
+	return &res, err
+}
+
 func (ec *executionContext) unmarshalOAddLocation2chambeapeᚋgraphqlᚐAddLocation(ctx context.Context, v interface{}) (AddLocation, error) {
 	return ec.unmarshalInputAddLocation(ctx, v)
 }
@@ -5168,6 +5365,54 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
+}
+
+func (ec *executionContext) marshalOExperience2chambeapeᚋgraphqlᚐExperience(ctx context.Context, sel ast.SelectionSet, v Experience) graphql.Marshaler {
+	return ec._Experience(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOExperience2ᚕᚖchambeapeᚋgraphqlᚐExperience(ctx context.Context, sel ast.SelectionSet, v []*Experience) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOExperience2ᚖchambeapeᚋgraphqlᚐExperience(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOExperience2ᚖchambeapeᚋgraphqlᚐExperience(ctx context.Context, sel ast.SelectionSet, v *Experience) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Experience(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {

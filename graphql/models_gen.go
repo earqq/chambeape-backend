@@ -2,6 +2,11 @@
 
 package graphql
 
+type AddExperience struct {
+	Description *string `json:"description"`
+	Phone       *string `json:"phone"`
+}
+
 type AddLocation struct {
 	Latitude   *string `json:"latitude" `
 	Longitude  *string `json:"longitude"`
@@ -20,12 +25,18 @@ type AddShares struct {
 }
 
 type AddWorker struct {
-	WorkerType  *int         `json:"worker_type" bson:"worker_type"`
-	Description *string      `json:"description"`
-	Location    *AddLocation `json:"location"`
-	EndDate     *string      `json:"end_date" bson:"end_date"`
-	Public      *bool        `json:"public"`
-	Shares      *AddShares   `json:"shares"`
+	WorkerType  *int             `json:"worker_type" bson:"worker_type"`
+	Description *string          `json:"description"`
+	Location    *AddLocation     `json:"location"`
+	EndDate     *string          `json:"end_date" bson:"end_date"`
+	Public      *bool            `json:"public"`
+	Shares      *AddShares       `json:"shares"`
+	Experience  []*AddExperience `json:"experience"`
+}
+
+type Experience struct {
+	Description *string `json:"description"`
+	Phone       *string `json:"phone"`
 }
 
 type Job struct {
@@ -151,10 +162,11 @@ type Video struct {
 }
 
 type Worker struct {
-	WorkerType  *int      `json:"worker_type" bson:"worker_type"`
-	Description *string   `json:"description"`
-	Location    *Location `json:"location"`
-	EndDate     *string   `json:"end_date" bson:"end_date"`
-	Public      *bool     `json:"public"`
-	Shares      *Shares   `json:"shares"`
+	WorkerType  *int          `json:"worker_type" bson:"worker_type"`
+	Description *string       `json:"description"`
+	Location    *Location     `json:"location"`
+	EndDate     *string       `json:"end_date" bson:"end_date"`
+	Public      *bool         `json:"public"`
+	Shares      *Shares       `json:"shares"`
+	Experience  []*Experience `json:"experience"`
 }
