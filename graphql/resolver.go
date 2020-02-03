@@ -264,15 +264,21 @@ func (r *mutationResolver) UpdateJob(ctx context.Context, input UpdateJob) (*Job
 
 type queryResolver struct{ *Resolver }
 
-func (r *queryResolver) Profile(ctx context.Context, public_id string) (*Profile, error) {
+func (r *queryResolver) Profile(ctx context.Context, idPublic *string, phone *string) (*Profile, error) {
 	var user Profile
-
-	if err := r.profiles.Find(bson.M{"id_public": public_id}).One(&user); err != nil {
-		return &Profile{}, err
+	if idPublic != nil {
+		if err := r.profiles.Find(bson.M{"id_public": idPublic}).One(&user); err != nil {
+			return &Profile{}, err
+		}
+	}
+	if phone != nil {
+		if err := r.profiles.Find(bson.M{"phone": phone, "worker.public": true}).One(&user); err != nil {
+			return &Profile{}, err
+		}
 	}
 	user.ID = bson.ObjectId(user.ID).Hex()
-
 	return &user, nil
+
 }
 func (r *queryResolver) Profiles(ctx context.Context, limit int, profile_type *int, search *string, worker_type *int, random *bool, worker_public *bool) ([]*Profile, error) {
 	var profiles []*Profile

@@ -103,7 +103,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Profile  func(childComplexity int, idPublic string) int
+		Profile  func(childComplexity int, idPublic *string, phone *string) int
 		Profiles func(childComplexity int, limit int, profileType *int, search *string, workerType *int, random *bool, workerPublic *bool) int
 		Job      func(childComplexity int, idPublic string) int
 		Jobs     func(childComplexity int, profileIDPublic *string, endDate *string, state *bool, search *string, limit int, jobType *int, random *bool) int
@@ -140,7 +140,7 @@ type MutationResolver interface {
 	CreateVideo(ctx context.Context, input NewVideo) (*Video, error)
 }
 type QueryResolver interface {
-	Profile(ctx context.Context, idPublic string) (*Profile, error)
+	Profile(ctx context.Context, idPublic *string, phone *string) (*Profile, error)
 	Profiles(ctx context.Context, limit int, profileType *int, search *string, workerType *int, random *bool, workerPublic *bool) ([]*Profile, error)
 	Job(ctx context.Context, idPublic string) (*Job, error)
 	Jobs(ctx context.Context, profileIDPublic *string, endDate *string, state *bool, search *string, limit int, jobType *int, random *bool) ([]*Job, error)
@@ -498,7 +498,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Profile(childComplexity, args["id_public"].(string)), true
+		return e.complexity.Query.Profile(childComplexity, args["id_public"].(*string), args["phone"].(*string)), true
 
 	case "Query.Profiles":
 		if e.complexity.Query.Profiles == nil {
@@ -710,7 +710,7 @@ var parsedSchema = gqlparser.MustLoadSchema(
 }
 
 type Query {
-    profile(id_public: String!): Profile!
+    profile(id_public: String, phone: String): Profile!
     profiles(limit:Int!,profile_type:Int,search:String,worker_type:Int,random:Boolean,worker_public:Boolean): [Profile]!
     job(id_public:String!): Job!
     jobs(profile_id_public:String,end_date:String,state:Boolean,search:String,limit:Int!,job_type:Int,random:Boolean): [Job]!
@@ -1045,14 +1045,22 @@ func (ec *executionContext) field_Query_jobs_args(ctx context.Context, rawArgs m
 func (ec *executionContext) field_Query_profile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *string
 	if tmp, ok := rawArgs["id_public"]; ok {
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["id_public"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["phone"]; ok {
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["phone"] = arg1
 	return args, nil
 }
 
@@ -2281,7 +2289,7 @@ func (ec *executionContext) _Query_profile(ctx context.Context, field graphql.Co
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Profile(rctx, args["id_public"].(string))
+		return ec.resolvers.Query().Profile(rctx, args["id_public"].(*string), args["phone"].(*string))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {

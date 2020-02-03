@@ -4,7 +4,7 @@ schema {
 }
 
 type Query {
-    profile(id_public: String!): Profile!
+    profile(id_public: String, phone: String): Profile!
     profiles(limit:Int!,profile_type:Int,search:String,worker_type:Int,random:Boolean,worker_public:Boolean): [Profile]!
     job(id_public:String!): Job!
     jobs(profile_id_public:String,end_date:String,state:Boolean,search:String,limit:Int!,job_type:Int,random:Boolean): [Job]!
