@@ -111,13 +111,12 @@ func (r *mutationResolver) UpdateProfile(ctx context.Context, input UpdateProfil
 		update = true
 	}
 	if !update {
-		return &Profile{}, errors.New("no fields present for updating data")
+		return &Profile{}, errors.New("No hay campos para actualizar")
 	}
 	fields["updated_at"] = time.Now().Local()
 	err := r.profiles.Update(bson.M{"id_public": input.IDPublic}, bson.M{"$set": fields})
 	if err != nil {
-		fmt.Print("errorr", input.IDPublic)
-		return &Profile{}, err
+		return &Profile{}, errors.New("No se encontro perfil para actualizar")
 	}
 
 	err = r.profiles.Find(bson.M{"id_public": input.IDPublic}).One(&user)
