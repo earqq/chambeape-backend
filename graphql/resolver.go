@@ -43,11 +43,11 @@ type mutationResolver struct{ *Resolver }
 func (r *mutationResolver) CreateProfile(ctx context.Context, input NewProfile) (*Profile, error) {
 	var user Profile
 
-	count, err := r.profiles.Find(bson.M{"id_public": input.IDPublic}).Count()
+	count, err := r.profiles.Find(bson.M{"phone": input.Phone}).Count()
 	if err != nil {
 		return &Profile{}, err
 	} else if count > 0 {
-		return &Profile{}, errors.New("user with that id public already exists")
+		return &Profile{}, errors.New("Número de celular ya esta registrado en otro usuario")
 	}
 	err = r.profiles.Insert(bson.M{"email": input.Email,
 		"birthdate":       input.Birthdate,
@@ -78,10 +78,10 @@ func (r *mutationResolver) UpdateProfile(ctx context.Context, input UpdateProfil
 		fields["names"] = *input.Names
 		update = true
 	}
-	if input.Phone != nil && *input.Phone != "" {
-		fields["phone"] = *input.Phone
-		update = true
-	}
+	// if input.Phone != nil && *input.Phone != "" {
+	// 	fields["phone"] = *input.Phone
+	// 	update = true
+	// }
 	if &input.IDPublic != nil && input.IDPublic != "" {
 		fields["id_public"] = input.IDPublic
 		update = true
