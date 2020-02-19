@@ -287,9 +287,7 @@ func (r *queryResolver) Profiles(ctx context.Context, limit int, profile_type *i
 	}
 
 	if search != nil {
-		fields["$or"] = []bson.M{
-			bson.M{"worker.location.to_search": bson.M{"$regex": strings.ToLower(*search)}},
-			bson.M{"names": bson.M{"$regex": strings.ToLower(*search)}}}
+		fields["names"] = bson.M{"$regex": *search, "$options": "i"}
 	}
 	if worker_type != nil {
 		fields["worker.worker_type"] = worker_type
