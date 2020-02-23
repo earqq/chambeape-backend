@@ -4,6 +4,7 @@ package graphql
 
 import (
 	"bytes"
+	"chambeape/models"
 	"context"
 	"errors"
 	"strconv"
@@ -33,8 +34,11 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Job() JobResolver
 	Mutation() MutationResolver
+	Profile() ProfileResolver
 	Query() QueryResolver
+	Worker() WorkerResolver
 }
 
 type DirectiveRoot struct {
@@ -50,101 +54,90 @@ type ComplexityRoot struct {
 		ID                 func(childComplexity int) int
 		Title              func(childComplexity int) int
 		IDPublic           func(childComplexity int) int
-		EndDate            func(childComplexity int) int
 		PublicationDate    func(childComplexity int) int
 		JobType            func(childComplexity int) int
 		JobTypeDescription func(childComplexity int) int
-		Visits             func(childComplexity int) int
 		Calls              func(childComplexity int) int
-		Validate           func(childComplexity int) int
+		Reports            func(childComplexity int) int
 		State              func(childComplexity int) int
 		Location           func(childComplexity int) int
 		Owner              func(childComplexity int) int
 	}
 
-	JobOwner struct {
-		IDPublic func(childComplexity int) int
-		Name     func(childComplexity int) int
-		Phone    func(childComplexity int) int
-		Img      func(childComplexity int) int
-	}
-
 	Location struct {
-		Latitude   func(childComplexity int) int
-		Longitude  func(childComplexity int) int
-		PostalCode func(childComplexity int) int
-		Route      func(childComplexity int) int
-		Locality   func(childComplexity int) int
-		AreaLevel1 func(childComplexity int) int
-		AreaLevel2 func(childComplexity int) int
-		Country    func(childComplexity int) int
-		ToSearch   func(childComplexity int) int
+		Route    func(childComplexity int) int
+		Locality func(childComplexity int) int
+		ToSearch func(childComplexity int) int
 	}
 
 	Mutation struct {
 		CreateProfile func(childComplexity int, input NewProfile) int
-		UpdateProfile func(childComplexity int, input UpdateProfile) int
+		UpdateWorker  func(childComplexity int, profileIDPublic string, input UpdateWorker) int
 		CreateJob     func(childComplexity int, input NewJob) int
-		UpdateJob     func(childComplexity int, input UpdateJob) int
-		CreateVideo   func(childComplexity int, input NewVideo) int
+		UpdateJob     func(childComplexity int, idPublic string, input UpdateJob) int
+	}
+
+	Owner struct {
+		Phone func(childComplexity int) int
 	}
 
 	Profile struct {
-		ID             func(childComplexity int) int
-		IDPublic       func(childComplexity int) int
-		ProfileType    func(childComplexity int) int
-		Names          func(childComplexity int) int
-		Email          func(childComplexity int) int
-		AvailableWeeks func(childComplexity int) int
-		Birthdate      func(childComplexity int) int
-		Phone          func(childComplexity int) int
-		Img            func(childComplexity int) int
-		Worker         func(childComplexity int) int
+		ID       func(childComplexity int) int
+		IDPublic func(childComplexity int) int
+		Worker   func(childComplexity int) int
 	}
 
 	Query struct {
-		Profile  func(childComplexity int, idPublic *string, phone *string) int
-		Profiles func(childComplexity int, limit int, profileType *int, search *string, workerType *int, random *bool, workerPublic *bool) int
+		Profiles func(childComplexity int, limit int) int
+		Worker   func(childComplexity int, profileIDPublic *string, phone *string) int
+		Workers  func(childComplexity int, limit int, search *string, workerType *int, random *bool, workerPublic *bool) int
 		Job      func(childComplexity int, idPublic string) int
-		Jobs     func(childComplexity int, profileIDPublic *string, endDate *string, state *bool, search *string, limit int, jobType *int, random *bool) int
-		Videos   func(childComplexity int) int
-	}
-
-	Shares struct {
-		Facebook func(childComplexity int) int
-		Whatsapp func(childComplexity int) int
-	}
-
-	Video struct {
-		Title      func(childComplexity int) int
-		WorkerType func(childComplexity int) int
-		URL        func(childComplexity int) int
+		Jobs     func(childComplexity int, profileIDPublic *string, state *bool, search *string, limit int, jobType *int, random *bool) int
 	}
 
 	Worker struct {
-		WorkerType  func(childComplexity int) int
-		Description func(childComplexity int) int
-		Location    func(childComplexity int) int
-		EndDate     func(childComplexity int) int
-		Public      func(childComplexity int) int
-		Shares      func(childComplexity int) int
-		Experience  func(childComplexity int) int
+		ID              func(childComplexity int) int
+		Names           func(childComplexity int) int
+		Email           func(childComplexity int) int
+		Phone           func(childComplexity int) int
+		Img             func(childComplexity int) int
+		Birthdate       func(childComplexity int) int
+		Profile         func(childComplexity int) int
+		ProfileIDPublic func(childComplexity int) int
+		WorkerType      func(childComplexity int) int
+		Description     func(childComplexity int) int
+		Location        func(childComplexity int) int
+		Public          func(childComplexity int) int
+		Experience      func(childComplexity int) int
 	}
 }
 
+type JobResolver interface {
+	Location(ctx context.Context, obj *models.Job) (*Location, error)
+	Owner(ctx context.Context, obj *models.Job) (*Owner, error)
+}
 type MutationResolver interface {
-	CreateProfile(ctx context.Context, input NewProfile) (*Profile, error)
-	UpdateProfile(ctx context.Context, input UpdateProfile) (*Profile, error)
-	CreateJob(ctx context.Context, input NewJob) (*Job, error)
-	UpdateJob(ctx context.Context, input UpdateJob) (*Job, error)
-	CreateVideo(ctx context.Context, input NewVideo) (*Video, error)
+	CreateProfile(ctx context.Context, input NewProfile) (*models.Profile, error)
+	UpdateWorker(ctx context.Context, profileIDPublic string, input UpdateWorker) (*models.Worker, error)
+	CreateJob(ctx context.Context, input NewJob) (*models.Job, error)
+	UpdateJob(ctx context.Context, idPublic string, input UpdateJob) (*models.Job, error)
+}
+type ProfileResolver interface {
+	Worker(ctx context.Context, obj *models.Profile) (*models.Worker, error)
 }
 type QueryResolver interface {
-	Profile(ctx context.Context, idPublic *string, phone *string) (*Profile, error)
-	Profiles(ctx context.Context, limit int, profileType *int, search *string, workerType *int, random *bool, workerPublic *bool) ([]*Profile, error)
-	Job(ctx context.Context, idPublic string) (*Job, error)
-	Jobs(ctx context.Context, profileIDPublic *string, endDate *string, state *bool, search *string, limit int, jobType *int, random *bool) ([]*Job, error)
-	Videos(ctx context.Context) ([]*Video, error)
+	Profiles(ctx context.Context, limit int) ([]*models.Profile, error)
+	Worker(ctx context.Context, profileIDPublic *string, phone *string) (*models.Worker, error)
+	Workers(ctx context.Context, limit int, search *string, workerType *int, random *bool, workerPublic *bool) ([]*models.Worker, error)
+	Job(ctx context.Context, idPublic string) (*models.Job, error)
+	Jobs(ctx context.Context, profileIDPublic *string, state *bool, search *string, limit int, jobType *int, random *bool) ([]*models.Job, error)
+}
+type WorkerResolver interface {
+	Profile(ctx context.Context, obj *models.Worker) (*models.Profile, error)
+
+	Location(ctx context.Context, obj *models.Worker) (*Location, error)
+
+	Experience(ctx context.Context, obj *models.Worker) ([]Experience, error)
 }
 
 type executableSchema struct {
@@ -197,13 +190,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Job.IDPublic(childComplexity), true
 
-	case "Job.EndDate":
-		if e.complexity.Job.EndDate == nil {
-			break
-		}
-
-		return e.complexity.Job.EndDate(childComplexity), true
-
 	case "Job.PublicationDate":
 		if e.complexity.Job.PublicationDate == nil {
 			break
@@ -225,13 +211,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Job.JobTypeDescription(childComplexity), true
 
-	case "Job.Visits":
-		if e.complexity.Job.Visits == nil {
-			break
-		}
-
-		return e.complexity.Job.Visits(childComplexity), true
-
 	case "Job.Calls":
 		if e.complexity.Job.Calls == nil {
 			break
@@ -239,12 +218,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Job.Calls(childComplexity), true
 
-	case "Job.Validate":
-		if e.complexity.Job.Validate == nil {
+	case "Job.Reports":
+		if e.complexity.Job.Reports == nil {
 			break
 		}
 
-		return e.complexity.Job.Validate(childComplexity), true
+		return e.complexity.Job.Reports(childComplexity), true
 
 	case "Job.State":
 		if e.complexity.Job.State == nil {
@@ -267,55 +246,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Job.Owner(childComplexity), true
 
-	case "JobOwner.IDPublic":
-		if e.complexity.JobOwner.IDPublic == nil {
-			break
-		}
-
-		return e.complexity.JobOwner.IDPublic(childComplexity), true
-
-	case "JobOwner.Name":
-		if e.complexity.JobOwner.Name == nil {
-			break
-		}
-
-		return e.complexity.JobOwner.Name(childComplexity), true
-
-	case "JobOwner.Phone":
-		if e.complexity.JobOwner.Phone == nil {
-			break
-		}
-
-		return e.complexity.JobOwner.Phone(childComplexity), true
-
-	case "JobOwner.Img":
-		if e.complexity.JobOwner.Img == nil {
-			break
-		}
-
-		return e.complexity.JobOwner.Img(childComplexity), true
-
-	case "Location.Latitude":
-		if e.complexity.Location.Latitude == nil {
-			break
-		}
-
-		return e.complexity.Location.Latitude(childComplexity), true
-
-	case "Location.Longitude":
-		if e.complexity.Location.Longitude == nil {
-			break
-		}
-
-		return e.complexity.Location.Longitude(childComplexity), true
-
-	case "Location.PostalCode":
-		if e.complexity.Location.PostalCode == nil {
-			break
-		}
-
-		return e.complexity.Location.PostalCode(childComplexity), true
-
 	case "Location.Route":
 		if e.complexity.Location.Route == nil {
 			break
@@ -329,27 +259,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Location.Locality(childComplexity), true
-
-	case "Location.AreaLevel1":
-		if e.complexity.Location.AreaLevel1 == nil {
-			break
-		}
-
-		return e.complexity.Location.AreaLevel1(childComplexity), true
-
-	case "Location.AreaLevel2":
-		if e.complexity.Location.AreaLevel2 == nil {
-			break
-		}
-
-		return e.complexity.Location.AreaLevel2(childComplexity), true
-
-	case "Location.Country":
-		if e.complexity.Location.Country == nil {
-			break
-		}
-
-		return e.complexity.Location.Country(childComplexity), true
 
 	case "Location.ToSearch":
 		if e.complexity.Location.ToSearch == nil {
@@ -370,17 +279,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateProfile(childComplexity, args["input"].(NewProfile)), true
 
-	case "Mutation.UpdateProfile":
-		if e.complexity.Mutation.UpdateProfile == nil {
+	case "Mutation.UpdateWorker":
+		if e.complexity.Mutation.UpdateWorker == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_updateProfile_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_updateWorker_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateProfile(childComplexity, args["input"].(UpdateProfile)), true
+		return e.complexity.Mutation.UpdateWorker(childComplexity, args["profile_id_public"].(string), args["input"].(UpdateWorker)), true
 
 	case "Mutation.CreateJob":
 		if e.complexity.Mutation.CreateJob == nil {
@@ -404,19 +313,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateJob(childComplexity, args["input"].(UpdateJob)), true
+		return e.complexity.Mutation.UpdateJob(childComplexity, args["id_public"].(string), args["input"].(UpdateJob)), true
 
-	case "Mutation.CreateVideo":
-		if e.complexity.Mutation.CreateVideo == nil {
+	case "Owner.Phone":
+		if e.complexity.Owner.Phone == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_createVideo_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CreateVideo(childComplexity, args["input"].(NewVideo)), true
+		return e.complexity.Owner.Phone(childComplexity), true
 
 	case "Profile.ID":
 		if e.complexity.Profile.ID == nil {
@@ -432,73 +336,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Profile.IDPublic(childComplexity), true
 
-	case "Profile.ProfileType":
-		if e.complexity.Profile.ProfileType == nil {
-			break
-		}
-
-		return e.complexity.Profile.ProfileType(childComplexity), true
-
-	case "Profile.Names":
-		if e.complexity.Profile.Names == nil {
-			break
-		}
-
-		return e.complexity.Profile.Names(childComplexity), true
-
-	case "Profile.Email":
-		if e.complexity.Profile.Email == nil {
-			break
-		}
-
-		return e.complexity.Profile.Email(childComplexity), true
-
-	case "Profile.AvailableWeeks":
-		if e.complexity.Profile.AvailableWeeks == nil {
-			break
-		}
-
-		return e.complexity.Profile.AvailableWeeks(childComplexity), true
-
-	case "Profile.Birthdate":
-		if e.complexity.Profile.Birthdate == nil {
-			break
-		}
-
-		return e.complexity.Profile.Birthdate(childComplexity), true
-
-	case "Profile.Phone":
-		if e.complexity.Profile.Phone == nil {
-			break
-		}
-
-		return e.complexity.Profile.Phone(childComplexity), true
-
-	case "Profile.Img":
-		if e.complexity.Profile.Img == nil {
-			break
-		}
-
-		return e.complexity.Profile.Img(childComplexity), true
-
 	case "Profile.Worker":
 		if e.complexity.Profile.Worker == nil {
 			break
 		}
 
 		return e.complexity.Profile.Worker(childComplexity), true
-
-	case "Query.Profile":
-		if e.complexity.Query.Profile == nil {
-			break
-		}
-
-		args, err := ec.field_Query_profile_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Profile(childComplexity, args["id_public"].(*string), args["phone"].(*string)), true
 
 	case "Query.Profiles":
 		if e.complexity.Query.Profiles == nil {
@@ -510,7 +353,31 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Profiles(childComplexity, args["limit"].(int), args["profile_type"].(*int), args["search"].(*string), args["worker_type"].(*int), args["random"].(*bool), args["worker_public"].(*bool)), true
+		return e.complexity.Query.Profiles(childComplexity, args["limit"].(int)), true
+
+	case "Query.Worker":
+		if e.complexity.Query.Worker == nil {
+			break
+		}
+
+		args, err := ec.field_Query_worker_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Worker(childComplexity, args["profile_id_public"].(*string), args["phone"].(*string)), true
+
+	case "Query.Workers":
+		if e.complexity.Query.Workers == nil {
+			break
+		}
+
+		args, err := ec.field_Query_workers_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Workers(childComplexity, args["limit"].(int), args["search"].(*string), args["worker_type"].(*int), args["random"].(*bool), args["worker_public"].(*bool)), true
 
 	case "Query.Job":
 		if e.complexity.Query.Job == nil {
@@ -534,49 +401,63 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Jobs(childComplexity, args["profile_id_public"].(*string), args["end_date"].(*string), args["state"].(*bool), args["search"].(*string), args["limit"].(int), args["job_type"].(*int), args["random"].(*bool)), true
+		return e.complexity.Query.Jobs(childComplexity, args["profile_id_public"].(*string), args["state"].(*bool), args["search"].(*string), args["limit"].(int), args["job_type"].(*int), args["random"].(*bool)), true
 
-	case "Query.Videos":
-		if e.complexity.Query.Videos == nil {
+	case "Worker.ID":
+		if e.complexity.Worker.ID == nil {
 			break
 		}
 
-		return e.complexity.Query.Videos(childComplexity), true
+		return e.complexity.Worker.ID(childComplexity), true
 
-	case "Shares.Facebook":
-		if e.complexity.Shares.Facebook == nil {
+	case "Worker.Names":
+		if e.complexity.Worker.Names == nil {
 			break
 		}
 
-		return e.complexity.Shares.Facebook(childComplexity), true
+		return e.complexity.Worker.Names(childComplexity), true
 
-	case "Shares.Whatsapp":
-		if e.complexity.Shares.Whatsapp == nil {
+	case "Worker.Email":
+		if e.complexity.Worker.Email == nil {
 			break
 		}
 
-		return e.complexity.Shares.Whatsapp(childComplexity), true
+		return e.complexity.Worker.Email(childComplexity), true
 
-	case "Video.Title":
-		if e.complexity.Video.Title == nil {
+	case "Worker.Phone":
+		if e.complexity.Worker.Phone == nil {
 			break
 		}
 
-		return e.complexity.Video.Title(childComplexity), true
+		return e.complexity.Worker.Phone(childComplexity), true
 
-	case "Video.WorkerType":
-		if e.complexity.Video.WorkerType == nil {
+	case "Worker.Img":
+		if e.complexity.Worker.Img == nil {
 			break
 		}
 
-		return e.complexity.Video.WorkerType(childComplexity), true
+		return e.complexity.Worker.Img(childComplexity), true
 
-	case "Video.URL":
-		if e.complexity.Video.URL == nil {
+	case "Worker.Birthdate":
+		if e.complexity.Worker.Birthdate == nil {
 			break
 		}
 
-		return e.complexity.Video.URL(childComplexity), true
+		return e.complexity.Worker.Birthdate(childComplexity), true
+
+	case "Worker.Profile":
+		if e.complexity.Worker.Profile == nil {
+			break
+		}
+
+		return e.complexity.Worker.Profile(childComplexity), true
+
+	case "Worker.ProfileIDPublic":
+		if e.complexity.Worker.ProfileIDPublic == nil {
+			break
+		}
+
+		return e.complexity.Worker.ProfileIDPublic(childComplexity), true
 
 	case "Worker.WorkerType":
 		if e.complexity.Worker.WorkerType == nil {
@@ -599,26 +480,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Worker.Location(childComplexity), true
 
-	case "Worker.EndDate":
-		if e.complexity.Worker.EndDate == nil {
-			break
-		}
-
-		return e.complexity.Worker.EndDate(childComplexity), true
-
 	case "Worker.Public":
 		if e.complexity.Worker.Public == nil {
 			break
 		}
 
 		return e.complexity.Worker.Public(childComplexity), true
-
-	case "Worker.Shares":
-		if e.complexity.Worker.Shares == nil {
-			break
-		}
-
-		return e.complexity.Worker.Shares(childComplexity), true
 
 	case "Worker.Experience":
 		if e.complexity.Worker.Experience == nil {
@@ -709,107 +576,60 @@ var parsedSchema = gqlparser.MustLoadSchema(
     mutation: Mutation
 }
 
-type Query {
-    profile(id_public: String, phone: String): Profile!
-    profiles(limit:Int!,profile_type:Int,search:String,worker_type:Int,random:Boolean,worker_public:Boolean): [Profile]!
-    job(id_public:String!): Job!
-    jobs(profile_id_public:String,end_date:String,state:Boolean,search:String,limit:Int!,job_type:Int,random:Boolean): [Job]!
-    videos: [Video]!
-}
-type Mutation {
-    createProfile(input: NewProfile!): Profile!
-    updateProfile(input: UpdateProfile!): Profile!
-    createJob(input: NewJob!): Job!
-    updateJob(input: UpdateJob!): Job!
-    createVideo(input: NewVideo!): Video!
-}
+
 type Profile {
     id: ID!
     id_public: String!
-    profile_type: Int!
-    names: String!
-    email: String!
-    available_weeks: Int!    
-    birthdate: String!    
-    phone: String!
-    img: String!    
-    worker:Worker!
-}
-type JobOwner{
-    id_public:String!
-    name:String!
-    phone:String!
-    img:String!
-}
-type Location {
-	latitude:String
-	longitude:String
-    postal_code:String
-    route:String
-    locality:String
-    area_level_1:String
-    area_level_2:String
-    country: String
-    to_search:String
-}
-type Job {
-    id: ID!
-    title: String!
-    id_public:String!
-    end_date: String!
-    publication_date: String!
-    job_type: Int!
-    job_type_description: String!
-    visits:Int!
-    calls:Int!
-    validate:Boolean!
-    state:Boolean!
-    location:Location!
-    owner:JobOwner!    
-}
-type Shares {    
-    facebook: String
-    whatsapp: String
+    worker:Worker!  
 }
 type Worker {    
+    id: ID!
+    names: String!
+    email: String!
+    phone: String!
+    img: String!    
+    birthdate: String!    
+    profile: Profile
+    profile_id_public: String!
     worker_type:Int
     description: String
-    location:Location
-    end_date: String
+    location: Location!
     public: Boolean
-    shares:Shares
-    experience: [Experience]
+    experience: [Experience!]
 }
 
 type Experience {
     description: String
     phone: String    
 }
-type Video {    
-    title:String!
-    worker_type: Int!
-    url: String!    
-}
-input NewVideo{
-    title:String!
-    worker_type: Int!
-    url: String!  
-}
-input NewJobOwner{
-    id_public:String!
-    name:String!
-    phone:String!
-    img:String!
-}
-input AddLocation {
-	latitude:String
-	longitude:String
-    postal_code:String
+
+type Location {
     route:String
     locality:String
-    area_level_1:String
-    area_level_2:String
-    country: String
+    to_search:String
+}
+type Job {
+    id: ID!
+    title: String!
+    id_public:String!
+    publication_date: String!
+    job_type: Int!
+    job_type_description: String!
+    calls:Int!
+    reports:Int!
+    state:Boolean!
+    location:Location!
+    owner: Owner! 
+}
+
+type Owner {
+    phone :String
+}
+
+
+input AddLocation {
+    route:String
+    locality:String
     to_search:String
 }
 input AddExperience {
@@ -818,63 +638,61 @@ input AddExperience {
 }
 input NewJob {
     title: String!
-    end_date: String!
     id_public:String!
     state:Boolean!
-    validate:Boolean!
-    visits:Int!
     calls:Int!
     job_type: Int!
+    contact_phone: String!
     job_type_description: String!
     location:AddLocation!
-    owner:NewJobOwner!
 }
 input UpdateJob {
-    title: String
-    id_public:String!
     state:Boolean
-    end_date: String
-    validate:Boolean!
-    job_type: Int
-    job_type_description: String
-    visits:Int
     calls:Int
-    location:AddLocation
-    owner:NewJobOwner
+    reports:Int
+    contact_phone: String
+    title: String
 }
-input NewProfile {
-    email: String
-    names: String!  
+input NewProfile {    
     id_public:String!
-    birthdate: String    
-    phone: String
     profile_type: Int!
-    img: String
 }
 
-input UpdateProfile {
-    id_public: String!
+input UpdateWorker {
+    email: String
     names: String
+    birthdate: String    
+    phone: String!
     img: String
-    email: String    
-    available_weeks: Int
-    birthdate: String
-    phone: String
-    profile_type: Int
-    worker:AddWorker
-}
-input AddShares {    
-    facebook: String
-    whatsapp: String
-}
-input AddWorker{
-    worker_type:Int
+    worker_type:Int 
     description:String
     location:AddLocation
-    end_date:String
     public: Boolean
-    shares:AddShares
     experience: [AddExperience]
+}
+
+type Query {
+    profiles(limit: Int!): [Profile]!
+    worker(profile_id_public: String, 
+        phone: String): Worker!
+    workers(limit:Int!,
+        search:String,
+        worker_type:Int,
+        random:Boolean,
+        worker_public:Boolean): [Worker]!
+    job(id_public:String!): Job!
+    jobs(profile_id_public:String,
+        state:Boolean,
+        search:String,
+        limit:Int!,
+        job_type:Int,
+        random:Boolean): [Job]!
+}
+type Mutation {
+    createProfile(input: NewProfile!): Profile!
+    updateWorker(profile_id_public:String!, input: UpdateWorker!): Worker!
+    createJob(input: NewJob!): Job!
+    updateJob(id_public:String!, input: UpdateJob!): Job!
 }`},
 )
 
@@ -910,45 +728,47 @@ func (ec *executionContext) field_Mutation_createProfile_args(ctx context.Contex
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_createVideo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 NewVideo
-	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNNewVideo2chambeapeᚋgraphqlᚐNewVideo(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_updateJob_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 UpdateJob
-	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNUpdateJob2chambeapeᚋgraphqlᚐUpdateJob(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["id_public"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg0
+	args["id_public"] = arg0
+	var arg1 UpdateJob
+	if tmp, ok := rawArgs["input"]; ok {
+		arg1, err = ec.unmarshalNUpdateJob2chambeapeᚋgraphqlᚐUpdateJob(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_updateProfile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_updateWorker_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 UpdateProfile
-	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNUpdateProfile2chambeapeᚋgraphqlᚐUpdateProfile(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["profile_id_public"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg0
+	args["profile_id_public"] = arg0
+	var arg1 UpdateWorker
+	if tmp, ok := rawArgs["input"]; ok {
+		arg1, err = ec.unmarshalNUpdateWorker2chambeapeᚋgraphqlᚐUpdateWorker(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
 	return args, nil
 }
 
@@ -991,76 +811,46 @@ func (ec *executionContext) field_Query_jobs_args(ctx context.Context, rawArgs m
 		}
 	}
 	args["profile_id_public"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["end_date"]; ok {
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["end_date"] = arg1
-	var arg2 *bool
+	var arg1 *bool
 	if tmp, ok := rawArgs["state"]; ok {
-		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		arg1, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["state"] = arg2
-	var arg3 *string
+	args["state"] = arg1
+	var arg2 *string
 	if tmp, ok := rawArgs["search"]; ok {
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["search"] = arg3
-	var arg4 int
+	args["search"] = arg2
+	var arg3 int
 	if tmp, ok := rawArgs["limit"]; ok {
-		arg4, err = ec.unmarshalNInt2int(ctx, tmp)
+		arg3, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit"] = arg4
-	var arg5 *int
+	args["limit"] = arg3
+	var arg4 *int
 	if tmp, ok := rawArgs["job_type"]; ok {
-		arg5, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		arg4, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["job_type"] = arg5
-	var arg6 *bool
+	args["job_type"] = arg4
+	var arg5 *bool
 	if tmp, ok := rawArgs["random"]; ok {
-		arg6, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		arg5, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["random"] = arg6
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_profile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *string
-	if tmp, ok := rawArgs["id_public"]; ok {
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id_public"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["phone"]; ok {
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["phone"] = arg1
+	args["random"] = arg5
 	return args, nil
 }
 
@@ -1075,46 +865,74 @@ func (ec *executionContext) field_Query_profiles_args(ctx context.Context, rawAr
 		}
 	}
 	args["limit"] = arg0
-	var arg1 *int
-	if tmp, ok := rawArgs["profile_type"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_worker_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["profile_id_public"]; ok {
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["profile_type"] = arg1
-	var arg2 *string
+	args["profile_id_public"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["phone"]; ok {
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["phone"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_workers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["limit"]; ok {
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *string
 	if tmp, ok := rawArgs["search"]; ok {
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["search"] = arg2
-	var arg3 *int
+	args["search"] = arg1
+	var arg2 *int
 	if tmp, ok := rawArgs["worker_type"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["worker_type"] = arg3
-	var arg4 *bool
+	args["worker_type"] = arg2
+	var arg3 *bool
 	if tmp, ok := rawArgs["random"]; ok {
+		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["random"] = arg3
+	var arg4 *bool
+	if tmp, ok := rawArgs["worker_public"]; ok {
 		arg4, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["random"] = arg4
-	var arg5 *bool
-	if tmp, ok := rawArgs["worker_public"]; ok {
-		arg5, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["worker_public"] = arg5
+	args["worker_public"] = arg4
 	return args, nil
 }
 
@@ -1196,7 +1014,7 @@ func (ec *executionContext) _Experience_phone(ctx context.Context, field graphql
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Job_id(ctx context.Context, field graphql.CollectedField, obj *Job) graphql.Marshaler {
+func (ec *executionContext) _Job_id(ctx context.Context, field graphql.CollectedField, obj *models.Job) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -1222,7 +1040,7 @@ func (ec *executionContext) _Job_id(ctx context.Context, field graphql.Collected
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Job_title(ctx context.Context, field graphql.CollectedField, obj *Job) graphql.Marshaler {
+func (ec *executionContext) _Job_title(ctx context.Context, field graphql.CollectedField, obj *models.Job) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -1248,7 +1066,7 @@ func (ec *executionContext) _Job_title(ctx context.Context, field graphql.Collec
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Job_id_public(ctx context.Context, field graphql.CollectedField, obj *Job) graphql.Marshaler {
+func (ec *executionContext) _Job_id_public(ctx context.Context, field graphql.CollectedField, obj *models.Job) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -1274,33 +1092,7 @@ func (ec *executionContext) _Job_id_public(ctx context.Context, field graphql.Co
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Job_end_date(ctx context.Context, field graphql.CollectedField, obj *Job) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Job",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.EndDate, nil
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Job_publication_date(ctx context.Context, field graphql.CollectedField, obj *Job) graphql.Marshaler {
+func (ec *executionContext) _Job_publication_date(ctx context.Context, field graphql.CollectedField, obj *models.Job) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -1326,7 +1118,7 @@ func (ec *executionContext) _Job_publication_date(ctx context.Context, field gra
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Job_job_type(ctx context.Context, field graphql.CollectedField, obj *Job) graphql.Marshaler {
+func (ec *executionContext) _Job_job_type(ctx context.Context, field graphql.CollectedField, obj *models.Job) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -1352,7 +1144,7 @@ func (ec *executionContext) _Job_job_type(ctx context.Context, field graphql.Col
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Job_job_type_description(ctx context.Context, field graphql.CollectedField, obj *Job) graphql.Marshaler {
+func (ec *executionContext) _Job_job_type_description(ctx context.Context, field graphql.CollectedField, obj *models.Job) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -1378,33 +1170,7 @@ func (ec *executionContext) _Job_job_type_description(ctx context.Context, field
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Job_visits(ctx context.Context, field graphql.CollectedField, obj *Job) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Job",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Visits, nil
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Job_calls(ctx context.Context, field graphql.CollectedField, obj *Job) graphql.Marshaler {
+func (ec *executionContext) _Job_calls(ctx context.Context, field graphql.CollectedField, obj *models.Job) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -1430,7 +1196,7 @@ func (ec *executionContext) _Job_calls(ctx context.Context, field graphql.Collec
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Job_validate(ctx context.Context, field graphql.CollectedField, obj *Job) graphql.Marshaler {
+func (ec *executionContext) _Job_reports(ctx context.Context, field graphql.CollectedField, obj *models.Job) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -1442,7 +1208,7 @@ func (ec *executionContext) _Job_validate(ctx context.Context, field graphql.Col
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Validate, nil
+		return obj.Reports, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1450,13 +1216,13 @@ func (ec *executionContext) _Job_validate(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Job_state(ctx context.Context, field graphql.CollectedField, obj *Job) graphql.Marshaler {
+func (ec *executionContext) _Job_state(ctx context.Context, field graphql.CollectedField, obj *models.Job) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -1482,7 +1248,7 @@ func (ec *executionContext) _Job_state(ctx context.Context, field graphql.Collec
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Job_location(ctx context.Context, field graphql.CollectedField, obj *Job) graphql.Marshaler {
+func (ec *executionContext) _Job_location(ctx context.Context, field graphql.CollectedField, obj *models.Job) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -1494,7 +1260,7 @@ func (ec *executionContext) _Job_location(ctx context.Context, field graphql.Col
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Location, nil
+		return ec.resolvers.Job().Location(rctx, obj)
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1502,13 +1268,13 @@ func (ec *executionContext) _Job_location(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(Location)
+	res := resTmp.(*Location)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNLocation2chambeapeᚋgraphqlᚐLocation(ctx, field.Selections, res)
+	return ec.marshalNLocation2ᚖchambeapeᚋgraphqlᚐLocation(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Job_owner(ctx context.Context, field graphql.CollectedField, obj *Job) graphql.Marshaler {
+func (ec *executionContext) _Job_owner(ctx context.Context, field graphql.CollectedField, obj *models.Job) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -1520,7 +1286,7 @@ func (ec *executionContext) _Job_owner(ctx context.Context, field graphql.Collec
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Owner, nil
+		return ec.resolvers.Job().Owner(rctx, obj)
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1528,183 +1294,10 @@ func (ec *executionContext) _Job_owner(ctx context.Context, field graphql.Collec
 		}
 		return graphql.Null
 	}
-	res := resTmp.(JobOwner)
+	res := resTmp.(*Owner)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNJobOwner2chambeapeᚋgraphqlᚐJobOwner(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _JobOwner_id_public(ctx context.Context, field graphql.CollectedField, obj *JobOwner) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "JobOwner",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.IDPublic, nil
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _JobOwner_name(ctx context.Context, field graphql.CollectedField, obj *JobOwner) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "JobOwner",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _JobOwner_phone(ctx context.Context, field graphql.CollectedField, obj *JobOwner) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "JobOwner",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Phone, nil
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _JobOwner_img(ctx context.Context, field graphql.CollectedField, obj *JobOwner) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "JobOwner",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Img, nil
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Location_latitude(ctx context.Context, field graphql.CollectedField, obj *Location) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Location",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Latitude, nil
-	})
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Location_longitude(ctx context.Context, field graphql.CollectedField, obj *Location) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Location",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Longitude, nil
-	})
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Location_postal_code(ctx context.Context, field graphql.CollectedField, obj *Location) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Location",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.PostalCode, nil
-	})
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNOwner2ᚖchambeapeᚋgraphqlᚐOwner(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Location_route(ctx context.Context, field graphql.CollectedField, obj *Location) graphql.Marshaler {
@@ -1743,75 +1336,6 @@ func (ec *executionContext) _Location_locality(ctx context.Context, field graphq
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Locality, nil
-	})
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Location_area_level_1(ctx context.Context, field graphql.CollectedField, obj *Location) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Location",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.AreaLevel1, nil
-	})
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Location_area_level_2(ctx context.Context, field graphql.CollectedField, obj *Location) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Location",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.AreaLevel2, nil
-	})
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Location_country(ctx context.Context, field graphql.CollectedField, obj *Location) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Location",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Country, nil
 	})
 	if resTmp == nil {
 		return graphql.Null
@@ -1872,13 +1396,13 @@ func (ec *executionContext) _Mutation_createProfile(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*Profile)
+	res := resTmp.(*models.Profile)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNProfile2ᚖchambeapeᚋgraphqlᚐProfile(ctx, field.Selections, res)
+	return ec.marshalNProfile2ᚖchambeapeᚋmodelsᚐProfile(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_updateProfile(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+func (ec *executionContext) _Mutation_updateWorker(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -1888,7 +1412,7 @@ func (ec *executionContext) _Mutation_updateProfile(ctx context.Context, field g
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_updateProfile_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_updateWorker_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -1897,7 +1421,7 @@ func (ec *executionContext) _Mutation_updateProfile(ctx context.Context, field g
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateProfile(rctx, args["input"].(UpdateProfile))
+		return ec.resolvers.Mutation().UpdateWorker(rctx, args["profile_id_public"].(string), args["input"].(UpdateWorker))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1905,10 +1429,10 @@ func (ec *executionContext) _Mutation_updateProfile(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*Profile)
+	res := resTmp.(*models.Worker)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNProfile2ᚖchambeapeᚋgraphqlᚐProfile(ctx, field.Selections, res)
+	return ec.marshalNWorker2ᚖchambeapeᚋmodelsᚐWorker(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createJob(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -1938,10 +1462,10 @@ func (ec *executionContext) _Mutation_createJob(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*Job)
+	res := resTmp.(*models.Job)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNJob2ᚖchambeapeᚋgraphqlᚐJob(ctx, field.Selections, res)
+	return ec.marshalNJob2ᚖchambeapeᚋmodelsᚐJob(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_updateJob(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -1963,7 +1487,7 @@ func (ec *executionContext) _Mutation_updateJob(ctx context.Context, field graph
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateJob(rctx, args["input"].(UpdateJob))
+		return ec.resolvers.Mutation().UpdateJob(rctx, args["id_public"].(string), args["input"].(UpdateJob))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1971,46 +1495,36 @@ func (ec *executionContext) _Mutation_updateJob(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*Job)
+	res := resTmp.(*models.Job)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNJob2ᚖchambeapeᚋgraphqlᚐJob(ctx, field.Selections, res)
+	return ec.marshalNJob2ᚖchambeapeᚋmodelsᚐJob(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_createVideo(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+func (ec *executionContext) _Owner_phone(ctx context.Context, field graphql.CollectedField, obj *Owner) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
-		Object: "Mutation",
+		Object: "Owner",
 		Field:  field,
 		Args:   nil,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_createVideo_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx.Args = args
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateVideo(rctx, args["input"].(NewVideo))
+		return obj.Phone, nil
 	})
 	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(*Video)
+	res := resTmp.(*string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNVideo2ᚖchambeapeᚋgraphqlᚐVideo(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Profile_id(ctx context.Context, field graphql.CollectedField, obj *Profile) graphql.Marshaler {
+func (ec *executionContext) _Profile_id(ctx context.Context, field graphql.CollectedField, obj *models.Profile) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -2036,7 +1550,7 @@ func (ec *executionContext) _Profile_id(ctx context.Context, field graphql.Colle
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Profile_id_public(ctx context.Context, field graphql.CollectedField, obj *Profile) graphql.Marshaler {
+func (ec *executionContext) _Profile_id_public(ctx context.Context, field graphql.CollectedField, obj *models.Profile) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -2062,7 +1576,7 @@ func (ec *executionContext) _Profile_id_public(ctx context.Context, field graphq
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Profile_profile_type(ctx context.Context, field graphql.CollectedField, obj *Profile) graphql.Marshaler {
+func (ec *executionContext) _Profile_worker(ctx context.Context, field graphql.CollectedField, obj *models.Profile) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -2074,7 +1588,7 @@ func (ec *executionContext) _Profile_profile_type(ctx context.Context, field gra
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ProfileType, nil
+		return ec.resolvers.Profile().Worker(rctx, obj)
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2082,225 +1596,10 @@ func (ec *executionContext) _Profile_profile_type(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*models.Worker)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Profile_names(ctx context.Context, field graphql.CollectedField, obj *Profile) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Profile",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Names, nil
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Profile_email(ctx context.Context, field graphql.CollectedField, obj *Profile) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Profile",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Email, nil
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Profile_available_weeks(ctx context.Context, field graphql.CollectedField, obj *Profile) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Profile",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.AvailableWeeks, nil
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Profile_birthdate(ctx context.Context, field graphql.CollectedField, obj *Profile) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Profile",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Birthdate, nil
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Profile_phone(ctx context.Context, field graphql.CollectedField, obj *Profile) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Profile",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Phone, nil
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Profile_img(ctx context.Context, field graphql.CollectedField, obj *Profile) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Profile",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Img, nil
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Profile_worker(ctx context.Context, field graphql.CollectedField, obj *Profile) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Profile",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Worker, nil
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(Worker)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNWorker2chambeapeᚋgraphqlᚐWorker(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_profile(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Query",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_profile_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx.Args = args
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Profile(rctx, args["id_public"].(*string), args["phone"].(*string))
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*Profile)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNProfile2ᚖchambeapeᚋgraphqlᚐProfile(ctx, field.Selections, res)
+	return ec.marshalNWorker2ᚖchambeapeᚋmodelsᚐWorker(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_profiles(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -2322,7 +1621,7 @@ func (ec *executionContext) _Query_profiles(ctx context.Context, field graphql.C
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Profiles(rctx, args["limit"].(int), args["profile_type"].(*int), args["search"].(*string), args["worker_type"].(*int), args["random"].(*bool), args["worker_public"].(*bool))
+		return ec.resolvers.Query().Profiles(rctx, args["limit"].(int))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2330,10 +1629,76 @@ func (ec *executionContext) _Query_profiles(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*Profile)
+	res := resTmp.([]*models.Profile)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNProfile2ᚕᚖchambeapeᚋgraphqlᚐProfile(ctx, field.Selections, res)
+	return ec.marshalNProfile2ᚕᚖchambeapeᚋmodelsᚐProfile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_worker(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Query",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_worker_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Worker(rctx, args["profile_id_public"].(*string), args["phone"].(*string))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.Worker)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNWorker2ᚖchambeapeᚋmodelsᚐWorker(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_workers(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Query",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_workers_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Workers(rctx, args["limit"].(int), args["search"].(*string), args["worker_type"].(*int), args["random"].(*bool), args["worker_public"].(*bool))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.Worker)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNWorker2ᚕᚖchambeapeᚋmodelsᚐWorker(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_job(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -2363,10 +1728,10 @@ func (ec *executionContext) _Query_job(ctx context.Context, field graphql.Collec
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*Job)
+	res := resTmp.(*models.Job)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNJob2ᚖchambeapeᚋgraphqlᚐJob(ctx, field.Selections, res)
+	return ec.marshalNJob2ᚖchambeapeᚋmodelsᚐJob(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_jobs(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -2388,7 +1753,7 @@ func (ec *executionContext) _Query_jobs(ctx context.Context, field graphql.Colle
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Jobs(rctx, args["profile_id_public"].(*string), args["end_date"].(*string), args["state"].(*bool), args["search"].(*string), args["limit"].(int), args["job_type"].(*int), args["random"].(*bool))
+		return ec.resolvers.Query().Jobs(rctx, args["profile_id_public"].(*string), args["state"].(*bool), args["search"].(*string), args["limit"].(int), args["job_type"].(*int), args["random"].(*bool))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2396,36 +1761,10 @@ func (ec *executionContext) _Query_jobs(ctx context.Context, field graphql.Colle
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*Job)
+	res := resTmp.([]*models.Job)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNJob2ᚕᚖchambeapeᚋgraphqlᚐJob(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_videos(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Query",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Videos(rctx)
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*Video)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNVideo2ᚕᚖchambeapeᚋgraphqlᚐVideo(ctx, field.Selections, res)
+	return ec.marshalNJob2ᚕᚖchambeapeᚋmodelsᚐJob(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -2481,11 +1820,11 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	return ec.marshalO__Schema2ᚖchambeapeᚋvendorᚋgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Shares_facebook(ctx context.Context, field graphql.CollectedField, obj *Shares) graphql.Marshaler {
+func (ec *executionContext) _Worker_id(ctx context.Context, field graphql.CollectedField, obj *models.Worker) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
-		Object: "Shares",
+		Object: "Worker",
 		Field:  field,
 		Args:   nil,
 	}
@@ -2493,22 +1832,25 @@ func (ec *executionContext) _Shares_facebook(ctx context.Context, field graphql.
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Facebook, nil
+		return obj.ID, nil
 	})
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Shares_whatsapp(ctx context.Context, field graphql.CollectedField, obj *Shares) graphql.Marshaler {
+func (ec *executionContext) _Worker_names(ctx context.Context, field graphql.CollectedField, obj *models.Worker) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
-		Object: "Shares",
+		Object: "Worker",
 		Field:  field,
 		Args:   nil,
 	}
@@ -2516,30 +1858,7 @@ func (ec *executionContext) _Shares_whatsapp(ctx context.Context, field graphql.
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Whatsapp, nil
-	})
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Video_title(ctx context.Context, field graphql.CollectedField, obj *Video) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Video",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Title, nil
+		return obj.Names, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2553,11 +1872,11 @@ func (ec *executionContext) _Video_title(ctx context.Context, field graphql.Coll
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Video_worker_type(ctx context.Context, field graphql.CollectedField, obj *Video) graphql.Marshaler {
+func (ec *executionContext) _Worker_email(ctx context.Context, field graphql.CollectedField, obj *models.Worker) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
-		Object: "Video",
+		Object: "Worker",
 		Field:  field,
 		Args:   nil,
 	}
@@ -2565,33 +1884,7 @@ func (ec *executionContext) _Video_worker_type(ctx context.Context, field graphq
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.WorkerType, nil
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Video_url(ctx context.Context, field graphql.CollectedField, obj *Video) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Video",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.URL, nil
+		return obj.Email, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2605,7 +1898,134 @@ func (ec *executionContext) _Video_url(ctx context.Context, field graphql.Collec
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Worker_worker_type(ctx context.Context, field graphql.CollectedField, obj *Worker) graphql.Marshaler {
+func (ec *executionContext) _Worker_phone(ctx context.Context, field graphql.CollectedField, obj *models.Worker) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Worker",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Phone, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Worker_img(ctx context.Context, field graphql.CollectedField, obj *models.Worker) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Worker",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Img, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Worker_birthdate(ctx context.Context, field graphql.CollectedField, obj *models.Worker) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Worker",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Birthdate, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Worker_profile(ctx context.Context, field graphql.CollectedField, obj *models.Worker) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Worker",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Worker().Profile(rctx, obj)
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.Profile)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOProfile2ᚖchambeapeᚋmodelsᚐProfile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Worker_profile_id_public(ctx context.Context, field graphql.CollectedField, obj *models.Worker) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Worker",
+		Field:  field,
+		Args:   nil,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProfileIDPublic, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Worker_worker_type(ctx context.Context, field graphql.CollectedField, obj *models.Worker) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -2628,7 +2048,7 @@ func (ec *executionContext) _Worker_worker_type(ctx context.Context, field graph
 	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Worker_description(ctx context.Context, field graphql.CollectedField, obj *Worker) graphql.Marshaler {
+func (ec *executionContext) _Worker_description(ctx context.Context, field graphql.CollectedField, obj *models.Worker) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -2651,7 +2071,7 @@ func (ec *executionContext) _Worker_description(ctx context.Context, field graph
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Worker_location(ctx context.Context, field graphql.CollectedField, obj *Worker) graphql.Marshaler {
+func (ec *executionContext) _Worker_location(ctx context.Context, field graphql.CollectedField, obj *models.Worker) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -2663,41 +2083,21 @@ func (ec *executionContext) _Worker_location(ctx context.Context, field graphql.
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Location, nil
+		return ec.resolvers.Worker().Location(rctx, obj)
 	})
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*Location)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOLocation2ᚖchambeapeᚋgraphqlᚐLocation(ctx, field.Selections, res)
+	return ec.marshalNLocation2ᚖchambeapeᚋgraphqlᚐLocation(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Worker_end_date(ctx context.Context, field graphql.CollectedField, obj *Worker) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Worker",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.EndDate, nil
-	})
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Worker_public(ctx context.Context, field graphql.CollectedField, obj *Worker) graphql.Marshaler {
+func (ec *executionContext) _Worker_public(ctx context.Context, field graphql.CollectedField, obj *models.Worker) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -2720,7 +2120,7 @@ func (ec *executionContext) _Worker_public(ctx context.Context, field graphql.Co
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Worker_shares(ctx context.Context, field graphql.CollectedField, obj *Worker) graphql.Marshaler {
+func (ec *executionContext) _Worker_experience(ctx context.Context, field graphql.CollectedField, obj *models.Worker) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -2732,38 +2132,15 @@ func (ec *executionContext) _Worker_shares(ctx context.Context, field graphql.Co
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Shares, nil
+		return ec.resolvers.Worker().Experience(rctx, obj)
 	})
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*Shares)
+	res := resTmp.([]Experience)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOShares2ᚖchambeapeᚋgraphqlᚐShares(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Worker_experience(ctx context.Context, field graphql.CollectedField, obj *Worker) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Worker",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Experience, nil
-	})
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*Experience)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOExperience2ᚕᚖchambeapeᚋgraphqlᚐExperience(ctx, field.Selections, res)
+	return ec.marshalOExperience2ᚕchambeapeᚋgraphqlᚐExperience(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) graphql.Marshaler {
@@ -3595,24 +2972,6 @@ func (ec *executionContext) unmarshalInputAddLocation(ctx context.Context, v int
 
 	for k, v := range asMap {
 		switch k {
-		case "latitude":
-			var err error
-			it.Latitude, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "longitude":
-			var err error
-			it.Longitude, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "postal_code":
-			var err error
-			it.PostalCode, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "route":
 			var err error
 			it.Route, err = ec.unmarshalOString2ᚖstring(ctx, v)
@@ -3625,105 +2984,9 @@ func (ec *executionContext) unmarshalInputAddLocation(ctx context.Context, v int
 			if err != nil {
 				return it, err
 			}
-		case "area_level_1":
-			var err error
-			it.AreaLevel1, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "area_level_2":
-			var err error
-			it.AreaLevel2, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "country":
-			var err error
-			it.Country, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "to_search":
 			var err error
 			it.ToSearch, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputAddShares(ctx context.Context, v interface{}) (AddShares, error) {
-	var it AddShares
-	var asMap = v.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "facebook":
-			var err error
-			it.Facebook, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "whatsapp":
-			var err error
-			it.Whatsapp, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputAddWorker(ctx context.Context, v interface{}) (AddWorker, error) {
-	var it AddWorker
-	var asMap = v.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "worker_type":
-			var err error
-			it.WorkerType, err = ec.unmarshalOInt2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "description":
-			var err error
-			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "location":
-			var err error
-			it.Location, err = ec.unmarshalOAddLocation2ᚖchambeapeᚋgraphqlᚐAddLocation(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "end_date":
-			var err error
-			it.EndDate, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "public":
-			var err error
-			it.Public, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "shares":
-			var err error
-			it.Shares, err = ec.unmarshalOAddShares2ᚖchambeapeᚋgraphqlᚐAddShares(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "experience":
-			var err error
-			it.Experience, err = ec.unmarshalOAddExperience2ᚕᚖchambeapeᚋgraphqlᚐAddExperience(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3745,12 +3008,6 @@ func (ec *executionContext) unmarshalInputNewJob(ctx context.Context, v interfac
 			if err != nil {
 				return it, err
 			}
-		case "end_date":
-			var err error
-			it.EndDate, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "id_public":
 			var err error
 			it.IDPublic, err = ec.unmarshalNString2string(ctx, v)
@@ -3760,18 +3017,6 @@ func (ec *executionContext) unmarshalInputNewJob(ctx context.Context, v interfac
 		case "state":
 			var err error
 			it.State, err = ec.unmarshalNBoolean2bool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "validate":
-			var err error
-			it.Validate, err = ec.unmarshalNBoolean2bool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "visits":
-			var err error
-			it.Visits, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3787,6 +3032,12 @@ func (ec *executionContext) unmarshalInputNewJob(ctx context.Context, v interfac
 			if err != nil {
 				return it, err
 			}
+		case "contact_phone":
+			var err error
+			it.ContactPhone, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "job_type_description":
 			var err error
 			it.JobTypeDescription, err = ec.unmarshalNString2string(ctx, v)
@@ -3796,48 +3047,6 @@ func (ec *executionContext) unmarshalInputNewJob(ctx context.Context, v interfac
 		case "location":
 			var err error
 			it.Location, err = ec.unmarshalNAddLocation2chambeapeᚋgraphqlᚐAddLocation(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "owner":
-			var err error
-			it.Owner, err = ec.unmarshalNNewJobOwner2chambeapeᚋgraphqlᚐNewJobOwner(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputNewJobOwner(ctx context.Context, v interface{}) (NewJobOwner, error) {
-	var it NewJobOwner
-	var asMap = v.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "id_public":
-			var err error
-			it.IDPublic, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "name":
-			var err error
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "phone":
-			var err error
-			it.Phone, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "img":
-			var err error
-			it.Img, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3853,75 +3062,15 @@ func (ec *executionContext) unmarshalInputNewProfile(ctx context.Context, v inte
 
 	for k, v := range asMap {
 		switch k {
-		case "email":
-			var err error
-			it.Email, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "names":
-			var err error
-			it.Names, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "id_public":
 			var err error
 			it.IDPublic, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "birthdate":
-			var err error
-			it.Birthdate, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "phone":
-			var err error
-			it.Phone, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "profile_type":
 			var err error
 			it.ProfileType, err = ec.unmarshalNInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "img":
-			var err error
-			it.Img, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputNewVideo(ctx context.Context, v interface{}) (NewVideo, error) {
-	var it NewVideo
-	var asMap = v.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "title":
-			var err error
-			it.Title, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "worker_type":
-			var err error
-			it.WorkerType, err = ec.unmarshalNInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "url":
-			var err error
-			it.URL, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3937,51 +3086,9 @@ func (ec *executionContext) unmarshalInputUpdateJob(ctx context.Context, v inter
 
 	for k, v := range asMap {
 		switch k {
-		case "title":
-			var err error
-			it.Title, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "id_public":
-			var err error
-			it.IDPublic, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "state":
 			var err error
 			it.State, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "end_date":
-			var err error
-			it.EndDate, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "validate":
-			var err error
-			it.Validate, err = ec.unmarshalNBoolean2bool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "job_type":
-			var err error
-			it.JobType, err = ec.unmarshalOInt2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "job_type_description":
-			var err error
-			it.JobTypeDescription, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "visits":
-			var err error
-			it.Visits, err = ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3991,15 +3098,21 @@ func (ec *executionContext) unmarshalInputUpdateJob(ctx context.Context, v inter
 			if err != nil {
 				return it, err
 			}
-		case "location":
+		case "reports":
 			var err error
-			it.Location, err = ec.unmarshalOAddLocation2ᚖchambeapeᚋgraphqlᚐAddLocation(ctx, v)
+			it.Reports, err = ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "owner":
+		case "contact_phone":
 			var err error
-			it.Owner, err = ec.unmarshalONewJobOwner2ᚖchambeapeᚋgraphqlᚐNewJobOwner(ctx, v)
+			it.ContactPhone, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "title":
+			var err error
+			it.Title, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4009,39 +3122,21 @@ func (ec *executionContext) unmarshalInputUpdateJob(ctx context.Context, v inter
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputUpdateProfile(ctx context.Context, v interface{}) (UpdateProfile, error) {
-	var it UpdateProfile
+func (ec *executionContext) unmarshalInputUpdateWorker(ctx context.Context, v interface{}) (UpdateWorker, error) {
+	var it UpdateWorker
 	var asMap = v.(map[string]interface{})
 
 	for k, v := range asMap {
 		switch k {
-		case "id_public":
-			var err error
-			it.IDPublic, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "names":
-			var err error
-			it.Names, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "img":
-			var err error
-			it.Img, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "email":
 			var err error
 			it.Email, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "available_weeks":
+		case "names":
 			var err error
-			it.AvailableWeeks, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.Names, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4053,19 +3148,43 @@ func (ec *executionContext) unmarshalInputUpdateProfile(ctx context.Context, v i
 			}
 		case "phone":
 			var err error
-			it.Phone, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			it.Phone, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "profile_type":
+		case "img":
 			var err error
-			it.ProfileType, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.Img, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "worker":
+		case "worker_type":
 			var err error
-			it.Worker, err = ec.unmarshalOAddWorker2ᚖchambeapeᚋgraphqlᚐAddWorker(ctx, v)
+			it.WorkerType, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "location":
+			var err error
+			it.Location, err = ec.unmarshalOAddLocation2ᚖchambeapeᚋgraphqlᚐAddLocation(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "public":
+			var err error
+			it.Public, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "experience":
+			var err error
+			it.Experience, err = ec.unmarshalOAddExperience2ᚕᚖchambeapeᚋgraphqlᚐAddExperience(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4111,7 +3230,7 @@ func (ec *executionContext) _Experience(ctx context.Context, sel ast.SelectionSe
 
 var jobImplementors = []string{"Job"}
 
-func (ec *executionContext) _Job(ctx context.Context, sel ast.SelectionSet, obj *Job) graphql.Marshaler {
+func (ec *executionContext) _Job(ctx context.Context, sel ast.SelectionSet, obj *models.Job) graphql.Marshaler {
 	fields := graphql.CollectFields(ctx, sel, jobImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -4135,11 +3254,6 @@ func (ec *executionContext) _Job(ctx context.Context, sel ast.SelectionSet, obj 
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
-		case "end_date":
-			out.Values[i] = ec._Job_end_date(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
 		case "publication_date":
 			out.Values[i] = ec._Job_publication_date(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -4155,18 +3269,13 @@ func (ec *executionContext) _Job(ctx context.Context, sel ast.SelectionSet, obj 
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
-		case "visits":
-			out.Values[i] = ec._Job_visits(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
 		case "calls":
 			out.Values[i] = ec._Job_calls(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
-		case "validate":
-			out.Values[i] = ec._Job_validate(ctx, field, obj)
+		case "reports":
+			out.Values[i] = ec._Job_reports(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
@@ -4176,57 +3285,33 @@ func (ec *executionContext) _Job(ctx context.Context, sel ast.SelectionSet, obj 
 				invalid = true
 			}
 		case "location":
-			out.Values[i] = ec._Job_location(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Job_location(ctx, field, obj)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
 		case "owner":
-			out.Values[i] = ec._Job_owner(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalid {
-		return graphql.Null
-	}
-	return out
-}
-
-var jobOwnerImplementors = []string{"JobOwner"}
-
-func (ec *executionContext) _JobOwner(ctx context.Context, sel ast.SelectionSet, obj *JobOwner) graphql.Marshaler {
-	fields := graphql.CollectFields(ctx, sel, jobOwnerImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	invalid := false
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("JobOwner")
-		case "id_public":
-			out.Values[i] = ec._JobOwner_id_public(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
-		case "name":
-			out.Values[i] = ec._JobOwner_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
-		case "phone":
-			out.Values[i] = ec._JobOwner_phone(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
-		case "img":
-			out.Values[i] = ec._JobOwner_img(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Job_owner(ctx, field, obj)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4249,22 +3334,10 @@ func (ec *executionContext) _Location(ctx context.Context, sel ast.SelectionSet,
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Location")
-		case "latitude":
-			out.Values[i] = ec._Location_latitude(ctx, field, obj)
-		case "longitude":
-			out.Values[i] = ec._Location_longitude(ctx, field, obj)
-		case "postal_code":
-			out.Values[i] = ec._Location_postal_code(ctx, field, obj)
 		case "route":
 			out.Values[i] = ec._Location_route(ctx, field, obj)
 		case "locality":
 			out.Values[i] = ec._Location_locality(ctx, field, obj)
-		case "area_level_1":
-			out.Values[i] = ec._Location_area_level_1(ctx, field, obj)
-		case "area_level_2":
-			out.Values[i] = ec._Location_area_level_2(ctx, field, obj)
-		case "country":
-			out.Values[i] = ec._Location_country(ctx, field, obj)
 		case "to_search":
 			out.Values[i] = ec._Location_to_search(ctx, field, obj)
 		default:
@@ -4298,8 +3371,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
-		case "updateProfile":
-			out.Values[i] = ec._Mutation_updateProfile(ctx, field)
+		case "updateWorker":
+			out.Values[i] = ec._Mutation_updateWorker(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
@@ -4310,11 +3383,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "updateJob":
 			out.Values[i] = ec._Mutation_updateJob(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
-		case "createVideo":
-			out.Values[i] = ec._Mutation_createVideo(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
@@ -4329,9 +3397,33 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 	return out
 }
 
+var ownerImplementors = []string{"Owner"}
+
+func (ec *executionContext) _Owner(ctx context.Context, sel ast.SelectionSet, obj *Owner) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, ownerImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	invalid := false
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Owner")
+		case "phone":
+			out.Values[i] = ec._Owner_phone(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
 var profileImplementors = []string{"Profile"}
 
-func (ec *executionContext) _Profile(ctx context.Context, sel ast.SelectionSet, obj *Profile) graphql.Marshaler {
+func (ec *executionContext) _Profile(ctx context.Context, sel ast.SelectionSet, obj *models.Profile) graphql.Marshaler {
 	fields := graphql.CollectFields(ctx, sel, profileImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -4350,46 +3442,20 @@ func (ec *executionContext) _Profile(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
-		case "profile_type":
-			out.Values[i] = ec._Profile_profile_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
-		case "names":
-			out.Values[i] = ec._Profile_names(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
-		case "email":
-			out.Values[i] = ec._Profile_email(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
-		case "available_weeks":
-			out.Values[i] = ec._Profile_available_weeks(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
-		case "birthdate":
-			out.Values[i] = ec._Profile_birthdate(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
-		case "phone":
-			out.Values[i] = ec._Profile_phone(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
-		case "img":
-			out.Values[i] = ec._Profile_img(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
 		case "worker":
-			out.Values[i] = ec._Profile_worker(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Profile_worker(ctx, field, obj)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4416,20 +3482,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
-		case "profile":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_profile(ctx, field)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
 		case "profiles":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -4439,6 +3491,34 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_profiles(ctx, field)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
+		case "worker":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_worker(ctx, field)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
+		case "workers":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_workers(ctx, field)
 				if res == graphql.Null {
 					invalid = true
 				}
@@ -4472,20 +3552,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
-		case "videos":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_videos(ctx, field)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -4501,72 +3567,9 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 	return out
 }
 
-var sharesImplementors = []string{"Shares"}
-
-func (ec *executionContext) _Shares(ctx context.Context, sel ast.SelectionSet, obj *Shares) graphql.Marshaler {
-	fields := graphql.CollectFields(ctx, sel, sharesImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	invalid := false
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Shares")
-		case "facebook":
-			out.Values[i] = ec._Shares_facebook(ctx, field, obj)
-		case "whatsapp":
-			out.Values[i] = ec._Shares_whatsapp(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalid {
-		return graphql.Null
-	}
-	return out
-}
-
-var videoImplementors = []string{"Video"}
-
-func (ec *executionContext) _Video(ctx context.Context, sel ast.SelectionSet, obj *Video) graphql.Marshaler {
-	fields := graphql.CollectFields(ctx, sel, videoImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	invalid := false
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Video")
-		case "title":
-			out.Values[i] = ec._Video_title(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
-		case "worker_type":
-			out.Values[i] = ec._Video_worker_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
-		case "url":
-			out.Values[i] = ec._Video_url(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalid {
-		return graphql.Null
-	}
-	return out
-}
-
 var workerImplementors = []string{"Worker"}
 
-func (ec *executionContext) _Worker(ctx context.Context, sel ast.SelectionSet, obj *Worker) graphql.Marshaler {
+func (ec *executionContext) _Worker(ctx context.Context, sel ast.SelectionSet, obj *models.Worker) graphql.Marshaler {
 	fields := graphql.CollectFields(ctx, sel, workerImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -4575,20 +3578,83 @@ func (ec *executionContext) _Worker(ctx context.Context, sel ast.SelectionSet, o
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Worker")
+		case "id":
+			out.Values[i] = ec._Worker_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "names":
+			out.Values[i] = ec._Worker_names(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "email":
+			out.Values[i] = ec._Worker_email(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "phone":
+			out.Values[i] = ec._Worker_phone(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "img":
+			out.Values[i] = ec._Worker_img(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "birthdate":
+			out.Values[i] = ec._Worker_birthdate(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "profile":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Worker_profile(ctx, field, obj)
+				return res
+			})
+		case "profile_id_public":
+			out.Values[i] = ec._Worker_profile_id_public(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "worker_type":
 			out.Values[i] = ec._Worker_worker_type(ctx, field, obj)
 		case "description":
 			out.Values[i] = ec._Worker_description(ctx, field, obj)
 		case "location":
-			out.Values[i] = ec._Worker_location(ctx, field, obj)
-		case "end_date":
-			out.Values[i] = ec._Worker_end_date(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Worker_location(ctx, field, obj)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
 		case "public":
 			out.Values[i] = ec._Worker_public(ctx, field, obj)
-		case "shares":
-			out.Values[i] = ec._Worker_shares(ctx, field, obj)
 		case "experience":
-			out.Values[i] = ec._Worker_experience(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Worker_experience(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4857,6 +3923,10 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return graphql.MarshalBoolean(v)
 }
 
+func (ec *executionContext) marshalNExperience2chambeapeᚋgraphqlᚐExperience(ctx context.Context, sel ast.SelectionSet, v Experience) graphql.Marshaler {
+	return ec._Experience(ctx, sel, &v)
+}
+
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
 	return graphql.UnmarshalID(v)
 }
@@ -4873,11 +3943,11 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return graphql.MarshalInt(v)
 }
 
-func (ec *executionContext) marshalNJob2chambeapeᚋgraphqlᚐJob(ctx context.Context, sel ast.SelectionSet, v Job) graphql.Marshaler {
+func (ec *executionContext) marshalNJob2chambeapeᚋmodelsᚐJob(ctx context.Context, sel ast.SelectionSet, v models.Job) graphql.Marshaler {
 	return ec._Job(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNJob2ᚕᚖchambeapeᚋgraphqlᚐJob(ctx context.Context, sel ast.SelectionSet, v []*Job) graphql.Marshaler {
+func (ec *executionContext) marshalNJob2ᚕᚖchambeapeᚋmodelsᚐJob(ctx context.Context, sel ast.SelectionSet, v []*models.Job) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -4901,7 +3971,7 @@ func (ec *executionContext) marshalNJob2ᚕᚖchambeapeᚋgraphqlᚐJob(ctx cont
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOJob2ᚖchambeapeᚋgraphqlᚐJob(ctx, sel, v[i])
+			ret[i] = ec.marshalOJob2ᚖchambeapeᚋmodelsᚐJob(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4914,7 +3984,7 @@ func (ec *executionContext) marshalNJob2ᚕᚖchambeapeᚋgraphqlᚐJob(ctx cont
 	return ret
 }
 
-func (ec *executionContext) marshalNJob2ᚖchambeapeᚋgraphqlᚐJob(ctx context.Context, sel ast.SelectionSet, v *Job) graphql.Marshaler {
+func (ec *executionContext) marshalNJob2ᚖchambeapeᚋmodelsᚐJob(ctx context.Context, sel ast.SelectionSet, v *models.Job) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4924,35 +3994,47 @@ func (ec *executionContext) marshalNJob2ᚖchambeapeᚋgraphqlᚐJob(ctx context
 	return ec._Job(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNJobOwner2chambeapeᚋgraphqlᚐJobOwner(ctx context.Context, sel ast.SelectionSet, v JobOwner) graphql.Marshaler {
-	return ec._JobOwner(ctx, sel, &v)
-}
-
 func (ec *executionContext) marshalNLocation2chambeapeᚋgraphqlᚐLocation(ctx context.Context, sel ast.SelectionSet, v Location) graphql.Marshaler {
 	return ec._Location(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNLocation2ᚖchambeapeᚋgraphqlᚐLocation(ctx context.Context, sel ast.SelectionSet, v *Location) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Location(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNNewJob2chambeapeᚋgraphqlᚐNewJob(ctx context.Context, v interface{}) (NewJob, error) {
 	return ec.unmarshalInputNewJob(ctx, v)
 }
 
-func (ec *executionContext) unmarshalNNewJobOwner2chambeapeᚋgraphqlᚐNewJobOwner(ctx context.Context, v interface{}) (NewJobOwner, error) {
-	return ec.unmarshalInputNewJobOwner(ctx, v)
-}
-
 func (ec *executionContext) unmarshalNNewProfile2chambeapeᚋgraphqlᚐNewProfile(ctx context.Context, v interface{}) (NewProfile, error) {
 	return ec.unmarshalInputNewProfile(ctx, v)
 }
 
-func (ec *executionContext) unmarshalNNewVideo2chambeapeᚋgraphqlᚐNewVideo(ctx context.Context, v interface{}) (NewVideo, error) {
-	return ec.unmarshalInputNewVideo(ctx, v)
+func (ec *executionContext) marshalNOwner2chambeapeᚋgraphqlᚐOwner(ctx context.Context, sel ast.SelectionSet, v Owner) graphql.Marshaler {
+	return ec._Owner(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNProfile2chambeapeᚋgraphqlᚐProfile(ctx context.Context, sel ast.SelectionSet, v Profile) graphql.Marshaler {
+func (ec *executionContext) marshalNOwner2ᚖchambeapeᚋgraphqlᚐOwner(ctx context.Context, sel ast.SelectionSet, v *Owner) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Owner(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNProfile2chambeapeᚋmodelsᚐProfile(ctx context.Context, sel ast.SelectionSet, v models.Profile) graphql.Marshaler {
 	return ec._Profile(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNProfile2ᚕᚖchambeapeᚋgraphqlᚐProfile(ctx context.Context, sel ast.SelectionSet, v []*Profile) graphql.Marshaler {
+func (ec *executionContext) marshalNProfile2ᚕᚖchambeapeᚋmodelsᚐProfile(ctx context.Context, sel ast.SelectionSet, v []*models.Profile) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -4976,7 +4058,7 @@ func (ec *executionContext) marshalNProfile2ᚕᚖchambeapeᚋgraphqlᚐProfile(
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOProfile2ᚖchambeapeᚋgraphqlᚐProfile(ctx, sel, v[i])
+			ret[i] = ec.marshalOProfile2ᚖchambeapeᚋmodelsᚐProfile(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4989,7 +4071,7 @@ func (ec *executionContext) marshalNProfile2ᚕᚖchambeapeᚋgraphqlᚐProfile(
 	return ret
 }
 
-func (ec *executionContext) marshalNProfile2ᚖchambeapeᚋgraphqlᚐProfile(ctx context.Context, sel ast.SelectionSet, v *Profile) graphql.Marshaler {
+func (ec *executionContext) marshalNProfile2ᚖchambeapeᚋmodelsᚐProfile(ctx context.Context, sel ast.SelectionSet, v *models.Profile) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -5011,15 +4093,15 @@ func (ec *executionContext) unmarshalNUpdateJob2chambeapeᚋgraphqlᚐUpdateJob(
 	return ec.unmarshalInputUpdateJob(ctx, v)
 }
 
-func (ec *executionContext) unmarshalNUpdateProfile2chambeapeᚋgraphqlᚐUpdateProfile(ctx context.Context, v interface{}) (UpdateProfile, error) {
-	return ec.unmarshalInputUpdateProfile(ctx, v)
+func (ec *executionContext) unmarshalNUpdateWorker2chambeapeᚋgraphqlᚐUpdateWorker(ctx context.Context, v interface{}) (UpdateWorker, error) {
+	return ec.unmarshalInputUpdateWorker(ctx, v)
 }
 
-func (ec *executionContext) marshalNVideo2chambeapeᚋgraphqlᚐVideo(ctx context.Context, sel ast.SelectionSet, v Video) graphql.Marshaler {
-	return ec._Video(ctx, sel, &v)
+func (ec *executionContext) marshalNWorker2chambeapeᚋmodelsᚐWorker(ctx context.Context, sel ast.SelectionSet, v models.Worker) graphql.Marshaler {
+	return ec._Worker(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNVideo2ᚕᚖchambeapeᚋgraphqlᚐVideo(ctx context.Context, sel ast.SelectionSet, v []*Video) graphql.Marshaler {
+func (ec *executionContext) marshalNWorker2ᚕᚖchambeapeᚋmodelsᚐWorker(ctx context.Context, sel ast.SelectionSet, v []*models.Worker) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -5043,7 +4125,7 @@ func (ec *executionContext) marshalNVideo2ᚕᚖchambeapeᚋgraphqlᚐVideo(ctx 
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOVideo2ᚖchambeapeᚋgraphqlᚐVideo(ctx, sel, v[i])
+			ret[i] = ec.marshalOWorker2ᚖchambeapeᚋmodelsᚐWorker(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -5056,18 +4138,14 @@ func (ec *executionContext) marshalNVideo2ᚕᚖchambeapeᚋgraphqlᚐVideo(ctx 
 	return ret
 }
 
-func (ec *executionContext) marshalNVideo2ᚖchambeapeᚋgraphqlᚐVideo(ctx context.Context, sel ast.SelectionSet, v *Video) graphql.Marshaler {
+func (ec *executionContext) marshalNWorker2ᚖchambeapeᚋmodelsᚐWorker(ctx context.Context, sel ast.SelectionSet, v *models.Worker) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
 		}
 		return graphql.Null
 	}
-	return ec._Video(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNWorker2chambeapeᚋgraphqlᚐWorker(ctx context.Context, sel ast.SelectionSet, v Worker) graphql.Marshaler {
-	return ec._Worker(ctx, sel, &v)
+	return ec._Worker(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalN__Directive2chambeapeᚋvendorᚋgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
@@ -5328,30 +4406,6 @@ func (ec *executionContext) unmarshalOAddLocation2ᚖchambeapeᚋgraphqlᚐAddLo
 	return &res, err
 }
 
-func (ec *executionContext) unmarshalOAddShares2chambeapeᚋgraphqlᚐAddShares(ctx context.Context, v interface{}) (AddShares, error) {
-	return ec.unmarshalInputAddShares(ctx, v)
-}
-
-func (ec *executionContext) unmarshalOAddShares2ᚖchambeapeᚋgraphqlᚐAddShares(ctx context.Context, v interface{}) (*AddShares, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalOAddShares2chambeapeᚋgraphqlᚐAddShares(ctx, v)
-	return &res, err
-}
-
-func (ec *executionContext) unmarshalOAddWorker2chambeapeᚋgraphqlᚐAddWorker(ctx context.Context, v interface{}) (AddWorker, error) {
-	return ec.unmarshalInputAddWorker(ctx, v)
-}
-
-func (ec *executionContext) unmarshalOAddWorker2ᚖchambeapeᚋgraphqlᚐAddWorker(ctx context.Context, v interface{}) (*AddWorker, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalOAddWorker2chambeapeᚋgraphqlᚐAddWorker(ctx, v)
-	return &res, err
-}
-
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	return graphql.UnmarshalBoolean(v)
 }
@@ -5375,11 +4429,7 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
 }
 
-func (ec *executionContext) marshalOExperience2chambeapeᚋgraphqlᚐExperience(ctx context.Context, sel ast.SelectionSet, v Experience) graphql.Marshaler {
-	return ec._Experience(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOExperience2ᚕᚖchambeapeᚋgraphqlᚐExperience(ctx context.Context, sel ast.SelectionSet, v []*Experience) graphql.Marshaler {
+func (ec *executionContext) marshalOExperience2ᚕchambeapeᚋgraphqlᚐExperience(ctx context.Context, sel ast.SelectionSet, v []Experience) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -5403,7 +4453,7 @@ func (ec *executionContext) marshalOExperience2ᚕᚖchambeapeᚋgraphqlᚐExper
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOExperience2ᚖchambeapeᚋgraphqlᚐExperience(ctx, sel, v[i])
+			ret[i] = ec.marshalNExperience2chambeapeᚋgraphqlᚐExperience(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -5414,13 +4464,6 @@ func (ec *executionContext) marshalOExperience2ᚕᚖchambeapeᚋgraphqlᚐExper
 	}
 	wg.Wait()
 	return ret
-}
-
-func (ec *executionContext) marshalOExperience2ᚖchambeapeᚋgraphqlᚐExperience(ctx context.Context, sel ast.SelectionSet, v *Experience) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Experience(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {
@@ -5446,60 +4489,26 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return ec.marshalOInt2int(ctx, sel, *v)
 }
 
-func (ec *executionContext) marshalOJob2chambeapeᚋgraphqlᚐJob(ctx context.Context, sel ast.SelectionSet, v Job) graphql.Marshaler {
+func (ec *executionContext) marshalOJob2chambeapeᚋmodelsᚐJob(ctx context.Context, sel ast.SelectionSet, v models.Job) graphql.Marshaler {
 	return ec._Job(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOJob2ᚖchambeapeᚋgraphqlᚐJob(ctx context.Context, sel ast.SelectionSet, v *Job) graphql.Marshaler {
+func (ec *executionContext) marshalOJob2ᚖchambeapeᚋmodelsᚐJob(ctx context.Context, sel ast.SelectionSet, v *models.Job) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Job(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOLocation2chambeapeᚋgraphqlᚐLocation(ctx context.Context, sel ast.SelectionSet, v Location) graphql.Marshaler {
-	return ec._Location(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOLocation2ᚖchambeapeᚋgraphqlᚐLocation(ctx context.Context, sel ast.SelectionSet, v *Location) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Location(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalONewJobOwner2chambeapeᚋgraphqlᚐNewJobOwner(ctx context.Context, v interface{}) (NewJobOwner, error) {
-	return ec.unmarshalInputNewJobOwner(ctx, v)
-}
-
-func (ec *executionContext) unmarshalONewJobOwner2ᚖchambeapeᚋgraphqlᚐNewJobOwner(ctx context.Context, v interface{}) (*NewJobOwner, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalONewJobOwner2chambeapeᚋgraphqlᚐNewJobOwner(ctx, v)
-	return &res, err
-}
-
-func (ec *executionContext) marshalOProfile2chambeapeᚋgraphqlᚐProfile(ctx context.Context, sel ast.SelectionSet, v Profile) graphql.Marshaler {
+func (ec *executionContext) marshalOProfile2chambeapeᚋmodelsᚐProfile(ctx context.Context, sel ast.SelectionSet, v models.Profile) graphql.Marshaler {
 	return ec._Profile(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOProfile2ᚖchambeapeᚋgraphqlᚐProfile(ctx context.Context, sel ast.SelectionSet, v *Profile) graphql.Marshaler {
+func (ec *executionContext) marshalOProfile2ᚖchambeapeᚋmodelsᚐProfile(ctx context.Context, sel ast.SelectionSet, v *models.Profile) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Profile(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOShares2chambeapeᚋgraphqlᚐShares(ctx context.Context, sel ast.SelectionSet, v Shares) graphql.Marshaler {
-	return ec._Shares(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOShares2ᚖchambeapeᚋgraphqlᚐShares(ctx context.Context, sel ast.SelectionSet, v *Shares) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Shares(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
@@ -5525,15 +4534,15 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return ec.marshalOString2string(ctx, sel, *v)
 }
 
-func (ec *executionContext) marshalOVideo2chambeapeᚋgraphqlᚐVideo(ctx context.Context, sel ast.SelectionSet, v Video) graphql.Marshaler {
-	return ec._Video(ctx, sel, &v)
+func (ec *executionContext) marshalOWorker2chambeapeᚋmodelsᚐWorker(ctx context.Context, sel ast.SelectionSet, v models.Worker) graphql.Marshaler {
+	return ec._Worker(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOVideo2ᚖchambeapeᚋgraphqlᚐVideo(ctx context.Context, sel ast.SelectionSet, v *Video) graphql.Marshaler {
+func (ec *executionContext) marshalOWorker2ᚖchambeapeᚋmodelsᚐWorker(ctx context.Context, sel ast.SelectionSet, v *models.Worker) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return ec._Video(ctx, sel, v)
+	return ec._Worker(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕchambeapeᚋvendorᚋgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValue(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

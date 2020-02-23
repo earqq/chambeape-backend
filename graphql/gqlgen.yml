@@ -12,3 +12,10 @@ model:
 resolver:
   filename: resolver.go
   type: Resolver
+models:
+  Job:
+    model: chambeape/models.Job
+  Profile:
+    model: chambeape/models.Profile
+  Worker:
+    model: chambeape/models.Worker

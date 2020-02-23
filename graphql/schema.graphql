@@ -3,107 +3,60 @@ schema {
     mutation: Mutation
 }
 
-type Query {
-    profile(id_public: String, phone: String): Profile!
-    profiles(limit:Int!,profile_type:Int,search:String,worker_type:Int,random:Boolean,worker_public:Boolean): [Profile]!
-    job(id_public:String!): Job!
-    jobs(profile_id_public:String,end_date:String,state:Boolean,search:String,limit:Int!,job_type:Int,random:Boolean): [Job]!
-    videos: [Video]!
-}
-type Mutation {
-    createProfile(input: NewProfile!): Profile!
-    updateProfile(input: UpdateProfile!): Profile!
-    createJob(input: NewJob!): Job!
-    updateJob(input: UpdateJob!): Job!
-    createVideo(input: NewVideo!): Video!
-}
+
 type Profile {
     id: ID!
     id_public: String!
-    profile_type: Int!
-    names: String!
-    email: String!
-    available_weeks: Int!    
-    birthdate: String!    
-    phone: String!
-    img: String!    
-    worker:Worker!
-}
-type JobOwner{
-    id_public:String!
-    name:String!
-    phone:String!
-    img:String!
-}
-type Location {
-	latitude:String
-	longitude:String
-    postal_code:String
-    route:String
-    locality:String
-    area_level_1:String
-    area_level_2:String
-    country: String
-    to_search:String
-}
-type Job {
-    id: ID!
-    title: String!
-    id_public:String!
-    end_date: String!
-    publication_date: String!
-    job_type: Int!
-    job_type_description: String!
-    visits:Int!
-    calls:Int!
-    validate:Boolean!
-    state:Boolean!
-    location:Location!
-    owner:JobOwner!    
-}
-type Shares {    
-    facebook: String
-    whatsapp: String
+    worker:Worker!  
 }
 type Worker {    
+    id: ID!
+    names: String!
+    email: String!
+    phone: String!
+    img: String!    
+    birthdate: String!    
+    profile: Profile
+    profile_id_public: String!
     worker_type:Int
     description: String
-    location:Location
-    end_date: String
+    location: Location!
     public: Boolean
-    shares:Shares
-    experience: [Experience]
+    experience: [Experience!]
 }
 
 type Experience {
     description: String
     phone: String    
 }
-type Video {    
-    title:String!
-    worker_type: Int!
-    url: String!    
-}
-input NewVideo{
-    title:String!
-    worker_type: Int!
-    url: String!  
-}
-input NewJobOwner{
-    id_public:String!
-    name:String!
-    phone:String!
-    img:String!
-}
-input AddLocation {
-	latitude:String
-	longitude:String
-    postal_code:String
+
+type Location {
     route:String
     locality:String
-    area_level_1:String
-    area_level_2:String
-    country: String
+    to_search:String
+}
+type Job {
+    id: ID!
+    title: String!
+    id_public:String!
+    publication_date: String!
+    job_type: Int!
+    job_type_description: String!
+    calls:Int!
+    reports:Int!
+    state:Boolean!
+    location:Location!
+    owner: Owner! 
+}
+
+type Owner {
+    phone :String
+}
+
+
+input AddLocation {
+    route:String
+    locality:String
     to_search:String
 }
 input AddExperience {
@@ -112,61 +65,59 @@ input AddExperience {
 }
 input NewJob {
     title: String!
-    end_date: String!
     id_public:String!
     state:Boolean!
-    validate:Boolean!
-    visits:Int!
     calls:Int!
     job_type: Int!
+    contact_phone: String!
     job_type_description: String!
     location:AddLocation!
-    owner:NewJobOwner!
 }
 input UpdateJob {
-    title: String
-    id_public:String!
     state:Boolean
-    end_date: String
-    validate:Boolean!
-    job_type: Int
-    job_type_description: String
-    visits:Int
     calls:Int
-    location:AddLocation
-    owner:NewJobOwner
+    reports:Int
+    contact_phone: String
+    title: String
 }
-input NewProfile {
-    email: String
-    names: String!  
+input NewProfile {    
     id_public:String!
-    birthdate: String    
-    phone: String
     profile_type: Int!
-    img: String
 }
 
-input UpdateProfile {
-    id_public: String!
+input UpdateWorker {
+    email: String
     names: String
+    birthdate: String    
+    phone: String!
     img: String
-    email: String    
-    available_weeks: Int
-    birthdate: String
-    phone: String
-    profile_type: Int
-    worker:AddWorker
-}
-input AddShares {    
-    facebook: String
-    whatsapp: String
-}
-input AddWorker{
-    worker_type:Int
+    worker_type:Int 
     description:String
     location:AddLocation
-    end_date:String
     public: Boolean
-    shares:AddShares
     experience: [AddExperience]
+}
+
+type Query {
+    profiles(limit: Int!): [Profile]!
+    worker(profile_id_public: String, 
+        phone: String): Worker!
+    workers(limit:Int!,
+        search:String,
+        worker_type:Int,
+        random:Boolean,
+        worker_public:Boolean): [Worker]!
+    job(id_public:String!): Job!
+    jobs(profile_id_public:String,
+        state:Boolean,
+        search:String,
+        limit:Int!,
+        job_type:Int,
+        random:Boolean): [Job]!
+}
+type Mutation {
+    createProfile(input: NewProfile!): Profile!
+    updateWorker(profile_id_public:String!, input: UpdateWorker!): Worker!
+    createJob(input: NewJob!): Job!
+    updateJob(id_public:String!, input: UpdateJob!): Job!
 }
