@@ -20,13 +20,7 @@ type Owner struct {
 	Phone *string `json:"phone"`
 }
 type Location struct {
-	Latitude   *string `json:"latitude"`
-	Longitude  *string `json:"longitude"`
-	PostalCode *string `json:"postal_code" bson:"postal_code"`
-	Route      *string `json:"route"`
-	Locality   *string `json:"locality"`
-	AreaLevel1 *string `json:"area_level_1" bson:"area_level_1"`
-	AreaLevel2 *string `json:"area_level_2" bson:"area_level_2"`
-	Country    *string `json:"country"`
-	ToSearch   *string `json:"to_search" bson:"to_search"`
+	Route    *string `json:"route"`
+	Locality *string `json:"locality"`
+	ToSearch *string `json:"to_search" bson:"to_search"`
 }

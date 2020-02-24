@@ -36,8 +36,10 @@ type NewJob struct {
 }
 
 type NewProfile struct {
-	IDPublic    string `json:"id_public"`
-	ProfileType int    `json:"profile_type"`
+	IDPublic string  `json:"id_public"`
+	Names    *string `json:"names"`
+	Email    *string `json:"email"`
+	Img      *string `json:"img"`
 }
 
 type Owner struct {
@@ -52,15 +54,15 @@ type UpdateJob struct {
 	Title        *string `json:"title"`
 }
 
-type UpdateWorker struct {
-	Email       *string          `json:"email"`
-	Names       *string          `json:"names"`
-	Birthdate   *string          `json:"birthdate"`
-	Phone       string           `json:"phone"`
-	Img         *string          `json:"img"`
-	WorkerType  *int             `json:"worker_type"`
-	Description *string          `json:"description"`
-	Location    *AddLocation     `json:"location"`
-	Public      *bool            `json:"public"`
-	Experience  []*AddExperience `json:"experience"`
+type UpdateProfile struct {
+	Email             *string          `json:"email"`
+	Names             *string          `json:"names"`
+	Birthdate         *string          `json:"birthdate"`
+	Phone             string           `json:"phone"`
+	Img               *string          `json:"img"`
+	Location          *AddLocation     `json:"location"`
+	WorkerType        *int             `json:"worker_type"`
+	WorkerDescription *string          `json:"worker_description"`
+	WorkerPublic      *bool            `json:"worker_public"`
+	WorkerExperience  []*AddExperience `json:"worker_experience"`
 }

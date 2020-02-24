@@ -17,11 +17,11 @@ import (
 )
 
 // THIS CODE IS A STARTING POINT ONLY. IT WILL NOT BE UPDATED WITH SCHEMA CHANGES.
+// THIS CODE IS A STARTING POINT ONLY. IT WILL NOT BE UPDATED WITH SCHEMA CHANGES.
 
 type Resolver struct {
 	profiles *mgo.Collection
 	jobs     *mgo.Collection
-	workers  *mgo.Collection
 }
 
 func New() Config {
@@ -29,7 +29,6 @@ func New() Config {
 		Resolvers: &Resolver{
 			profiles: db.GetCollection("profiles"),
 			jobs:     db.GetCollection("jobs"),
-			workers:  db.GetCollection("workers"),
 		},
 	}
 }
@@ -46,9 +45,6 @@ func (r *Resolver) Profile() ProfileResolver {
 func (r *Resolver) Query() QueryResolver {
 	return &queryResolver{r}
 }
-func (r *Resolver) Worker() WorkerResolver {
-	return &workerResolver{r}
-}
 
 type jobResolver struct{ *Resolver }
 
@@ -64,40 +60,16 @@ func (r *jobResolver) Owner(ctx context.Context, obj *models.Job) (*Owner, error
 	return &owner, nil
 }
 
-type workerResolver struct{ *Resolver }
-
-func (r *workerResolver) Profile(ctx context.Context, obj *models.Worker) (*models.Profile, error) {
-	var profile models.Profile
-	if err := r.profiles.Find(bson.M{"id_public": obj.ProfileIDPublic}).One(&profile); err != nil {
-		return &models.Profile{}, errors.New("Perfil relacionado al trabajador no existe")
-	}
-	return &profile, nil
-}
-func (r *workerResolver) Location(ctx context.Context, obj *models.Worker) (*Location, error) {
-	var location Location
-	location.Route = obj.Location.Route
-	location.Locality = obj.Location.Locality
-	return &location, nil
-}
-func (r *workerResolver) Experience(ctx context.Context, obj *models.Worker) ([]Experience, error) {
-	var experiences []Experience
-	for i := 0; i < len(obj.Experience); i++ {
-		var favorite Experience
-		favorite.Description = obj.Experience[i].Description
-		favorite.Phone = obj.Experience[i].Phone
-		experiences = append(experiences, favorite)
-	}
-	return experiences, nil
-}
-
 type mutationResolver struct{ *Resolver }
 
 func (r *mutationResolver) CreateProfile(ctx context.Context, input NewProfile) (*models.Profile, error) {
 	var user models.Profile
 	err := r.profiles.Insert(bson.M{
-		"profile_type": input.ProfileType,
-		"id_public":    input.IDPublic,
-		"updated_at":   time.Now().Local()})
+		"id_public":  input.IDPublic,
+		"names":      input.Names,
+		"email":      input.Email,
+		"img":        input.Img,
+		"updated_at": time.Now().Local()})
 	if err != nil {
 		return &models.Profile{}, err
 	}
@@ -108,23 +80,21 @@ func (r *mutationResolver) CreateProfile(ctx context.Context, input NewProfile) 
 	}
 
 	return &user, nil
-
 }
-func (r *mutationResolver) UpdateWorker(ctx context.Context, profileIDPublic string, input UpdateWorker) (*models.Worker, error) {
+func (r *mutationResolver) UpdateProfile(ctx context.Context, idPublic string, input UpdateProfile) (*models.Profile, error) {
 	var fields = bson.M{}
-	var worker models.Worker
+	var profile models.Profile
 	update := false
 	if input.Phone != "" {
-		count, err := r.workers.Find(bson.M{"phone": input.Phone, "profile_id_public": bson.M{"$ne": profileIDPublic}}).Count()
+		count, err := r.profiles.Find(bson.M{"phone": input.Phone, "id_public": bson.M{"$ne": idPublic}}).Count()
 		if err != nil {
-			return &models.Worker{}, err
+			return &models.Profile{}, err
 		} else if count > 0 {
-			return &models.Worker{}, errors.New("Número de celular ya esta registrado en otro trabajador")
+			return &models.Profile{}, errors.New("Número de celular ya esta registrado en otro perfil")
 		}
 		fields["phone"] = input.Phone
 		update = true
 	}
-	fields["profile_id_public"] = profileIDPublic
 	if input.Birthdate != nil && *input.Birthdate != "" {
 		fields["birthdate"] = *input.Birthdate
 		update = true
@@ -141,42 +111,38 @@ func (r *mutationResolver) UpdateWorker(ctx context.Context, profileIDPublic str
 		fields["email"] = input.Email
 		update = true
 	}
-	if input.WorkerType != nil {
-		fields["worker_type"] = *input.WorkerType
-		update = true
-	}
-	if input.Description != nil {
-		fields["description"] = *input.Description
-		update = true
-	}
-	if input.Public != nil {
-		fields["public"] = *input.Public
-		update = true
-	}
 	if input.Location != nil {
 		fields["location"] = *input.Location
 		update = true
 	}
-	if input.Experience != nil {
-		fields["experience"] = input.Experience
+	if input.WorkerType != nil {
+		fields["worker_type"] = *input.WorkerType
+		update = true
+	}
+	if input.WorkerDescription != nil {
+		fields["worker_description"] = *input.WorkerDescription
+		update = true
+	}
+	if input.WorkerPublic != nil {
+		fields["worker_public"] = *input.WorkerPublic
+		update = true
+	}
+	if input.WorkerExperience != nil {
+		fields["worker_experience"] = input.WorkerExperience
 		update = true
 	}
 	update = true
 	if !update {
-		return &models.Worker{}, errors.New("No hay campos para actualizar")
+		return &models.Profile{}, errors.New("No hay campos para actualizar")
 	}
 	fields["updated_at"] = time.Now().Local()
-	err := r.workers.Update(bson.M{"profile_id_public": profileIDPublic}, bson.M{"$set": fields})
-	if err != nil {
-		err = r.workers.Insert(fields)
-	}
+	r.profiles.Update(bson.M{"id_public": idPublic}, bson.M{"$set": fields})
 
-	err = r.workers.Find(bson.M{"profile_id_public": profileIDPublic}).One(&worker)
+	err := r.profiles.Find(bson.M{"id_public": idPublic}).One(&profile)
 	if err != nil {
-		return &models.Worker{}, err
+		return &models.Profile{}, err
 	}
-	return &worker, nil
-
+	return &profile, nil
 }
 func (r *mutationResolver) CreateJob(ctx context.Context, input NewJob) (*models.Job, error) {
 	var job models.Job
@@ -209,7 +175,6 @@ func (r *mutationResolver) CreateJob(ctx context.Context, input NewJob) (*models
 func isMn(r rune) bool {
 	return unicode.Is(unicode.Mn, r) // Mn: sinespacios marks
 }
-
 func (r *mutationResolver) UpdateJob(ctx context.Context, idPublic string, input UpdateJob) (*models.Job, error) {
 	var fields = bson.M{}
 	var job models.Job
@@ -218,7 +183,6 @@ func (r *mutationResolver) UpdateJob(ctx context.Context, idPublic string, input
 	if input.Calls != nil {
 		fields["calls"] = *input.Calls
 		update = true
-		fields["updated_at"] = time.Now().Local()
 	}
 	if input.State != nil {
 		fields["state"] = *input.State
@@ -228,7 +192,6 @@ func (r *mutationResolver) UpdateJob(ctx context.Context, idPublic string, input
 	if input.Reports != nil {
 		fields["reports"] = *input.Reports
 		update = true
-		fields["updated_at"] = time.Now().Local()
 	}
 	if !update {
 		return &models.Job{}, errors.New("No hay campos para actualizar")
@@ -243,46 +206,75 @@ func (r *mutationResolver) UpdateJob(ctx context.Context, idPublic string, input
 		return &models.Job{}, err
 	}
 	return &job, nil
-
 }
 
 type profileResolver struct{ *Resolver }
 
-func (r *profileResolver) Worker(ctx context.Context, obj *models.Profile) (*models.Worker, error) {
-	var worker models.Worker
-	if err := r.workers.Find(bson.M{"profile_id_public": obj.IDPublic}).One(&worker); err != nil {
-		return &models.Worker{}, errors.New("Trabajador relacionado al perfil")
+func (r *profileResolver) Location(ctx context.Context, obj *models.Profile) (*Location, error) {
+	var location Location
+	location.Route = obj.Location.Route
+	location.Locality = obj.Location.Locality
+	return &location, nil
+}
+func (r *profileResolver) WorkerExperience(ctx context.Context, obj *models.Profile) ([]Experience, error) {
+	var experiences []Experience
+	for i := 0; i < len(obj.WorkerExperience); i++ {
+		var favorite Experience
+		favorite.Description = obj.WorkerExperience[i].Description
+		favorite.Phone = obj.WorkerExperience[i].Phone
+		experiences = append(experiences, favorite)
 	}
-	return &worker, nil
+	return experiences, nil
 }
 
 type queryResolver struct{ *Resolver }
 
-func (r *queryResolver) Profiles(ctx context.Context, limit int) ([]*models.Profile, error) {
-	var profiles []*models.Profile
+func (r *queryResolver) Profile(ctx context.Context, idPublic *string, phone *string, workerPublic *bool) (*models.Profile, error) {
+	var profile models.Profile
 	var fields = bson.M{}
-	r.profiles.Find(fields).Limit(limit).Sort("-updated_at").All(&profiles)
-	return profiles, nil
-
-}
-func (r *queryResolver) Worker(ctx context.Context, profileIDPublic *string, phone *string) (*models.Worker, error) {
-	var worker models.Worker
 	if phone != nil {
-		if err := r.workers.Find(bson.M{"phone": phone, "public": true}).One(&worker); err != nil {
-			return &models.Worker{}, err
-		}
+		fields["phone"] = phone
 	}
-	if profileIDPublic != nil {
-		if err := r.workers.Find(bson.M{"profile_id_public": profileIDPublic}).One(&worker); err != nil {
-			return &models.Worker{}, err
-		}
+	if workerPublic != nil {
+		fields["worker_public"] = workerPublic
 	}
-
-	return &worker, nil
+	if idPublic != nil {
+		fields["id_public"] = idPublic
+	}
+	r.profiles.Find(fields).One(&profile)
+	return &profile, nil
 }
-func (r *queryResolver) Workers(ctx context.Context, limit int, search *string, workerType *int, random *bool, workerPublic *bool) ([]*models.Worker, error) {
+func (r *queryResolver) Profiles(ctx context.Context, limit int, search *string, workerType *int, random *bool, workerPublic *bool) ([]*models.Profile, error) {
 	//Actualziar perfiles
-	var workers []*models.Worker
+	type OldWorker struct {
+		WorkerType  int                 `json:"worker_type" bson:"worker_type"`
+		Description string              `json:"description" bson:"description"`
+		Location    models.Location     `json:"location" bson:"location"`
+		Public      bool                `json:"public" bson:"public"`
+		Experience  []models.Experience `json:"experience" bson:"experience"`
+	}
+	type oldProfiles struct {
+		IDPublic  string `json:"id_public" bson:"id_public"`
+		Names     string `json:"names" bson:"names"`
+		Img       string `json:"img" bson:"worker_type"`
+		Phone     string
+		Email     string
+		Birthdate string
+		Worker    OldWorker `json:"worker" bson:"worker"`
+	}
+	var allProfiles []oldProfiles
+	r.profiles.Find(bson.M{}).All(&allProfiles)
+	for i := 0; i < len(allProfiles); i++ {
+		var fields = bson.M{}
+
+		fields["worker_type"] = &allProfiles[i].Worker.WorkerType
+		fields["worker_description"] = &allProfiles[i].Worker.Description
+		fields["worker_public"] = &allProfiles[i].Worker.Public
+		fields["worker_experience"] = allProfiles[i].Worker.Experience
+		fields["location"] = allProfiles[i].Worker.Location
+		r.profiles.Update(bson.M{"id_public": allProfiles[i].IDPublic}, bson.M{"$set": fields})
+	}
+	var profiles []*models.Profile
 	var fields = bson.M{}
 
 	if search != nil {
@@ -292,13 +284,13 @@ func (r *queryResolver) Workers(ctx context.Context, limit int, search *string, 
 		fields["worker_type"] = workerType
 	}
 	if workerPublic != nil {
-		fields["public"] = workerPublic
+		fields["worker_public"] = workerPublic
 	}
-	r.workers.Find(fields).Limit(limit).Sort("-updated_at").All(&workers)
+	r.profiles.Find(fields).Limit(limit).Sort("-updated_at").All(&profiles)
 	if random != nil {
-		ShuffleWorkers(workers)
+		ShuffleProfiles(profiles)
 	}
-	return workers, nil
+	return profiles, nil
 }
 func (r *queryResolver) Job(ctx context.Context, idPublic string) (*models.Job, error) {
 	var job models.Job
@@ -341,7 +333,7 @@ func Shuffle(slc []*models.Job) {
 		}
 	}
 }
-func ShuffleWorkers(slc []*models.Worker) {
+func ShuffleProfiles(slc []*models.Profile) {
 	for i := 1; i < len(slc); i++ {
 		r := rand.Intn(i + 1)
 		if i != r {

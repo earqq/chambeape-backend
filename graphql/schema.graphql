@@ -3,27 +3,21 @@ schema {
     mutation: Mutation
 }
 
-
 type Profile {
     id: ID!
     id_public: String!
-    worker:Worker!  
-}
-type Worker {    
-    id: ID!
     names: String!
     email: String!
     phone: String!
-    img: String!    
     birthdate: String!    
-    profile: Profile
-    profile_id_public: String!
-    worker_type:Int
-    description: String
+    img: String!    
     location: Location!
-    public: Boolean
-    experience: [Experience!]
+    worker_public: Boolean
+    worker_type:Int
+    worker_description: String
+    worker_experience: [Experience!]
 }
+
 
 type Experience {
     description: String
@@ -82,31 +76,33 @@ input UpdateJob {
 }
 input NewProfile {    
     id_public:String!
-    profile_type: Int!
+    names: String
+    email: String
+    img: String
 }
 
-input UpdateWorker {
+input UpdateProfile {
     email: String
     names: String
     birthdate: String    
     phone: String!
     img: String
-    worker_type:Int 
-    description:String
     location:AddLocation
-    public: Boolean
-    experience: [AddExperience]
+    worker_type:Int 
+    worker_description:String
+    worker_public: Boolean
+    worker_experience: [AddExperience]
 }
 
 type Query {
-    profiles(limit: Int!): [Profile]!
-    worker(profile_id_public: String, 
-        phone: String): Worker!
-    workers(limit:Int!,
+    profile(id_public: String, 
+        phone: String
+        worker_public: Boolean): Profile!
+    profiles(limit:Int!,
         search:String,
         worker_type:Int,
         random:Boolean,
-        worker_public:Boolean): [Worker]!
+        worker_public:Boolean): [Profile]!
     job(id_public:String!): Job!
     jobs(profile_id_public:String,
         state:Boolean,
@@ -117,7 +113,7 @@ type Query {
 }
 type Mutation {
     createProfile(input: NewProfile!): Profile!
-    updateWorker(profile_id_public:String!, input: UpdateWorker!): Worker!
+    updateProfile(id_public:String!, input: UpdateProfile!): Profile!
     createJob(input: NewJob!): Job!
     updateJob(id_public:String!, input: UpdateJob!): Job!
 }

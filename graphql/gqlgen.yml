@@ -17,5 +17,3 @@ models:
     model: chambeape/models.Job
   Profile:
     model: chambeape/models.Profile
-  Worker:
-    model: chambeape/models.Worker
