@@ -246,34 +246,34 @@ func (r *queryResolver) Profile(ctx context.Context, idPublic *string, phone *st
 }
 func (r *queryResolver) Profiles(ctx context.Context, limit int, search *string, workerType *int, random *bool, workerPublic *bool) ([]*models.Profile, error) {
 	//Actualziar perfiles
-	type OldWorker struct {
-		WorkerType  int                 `json:"worker_type" bson:"worker_type"`
-		Description string              `json:"description" bson:"description"`
-		Location    models.Location     `json:"location" bson:"location"`
-		Public      bool                `json:"public" bson:"public"`
-		Experience  []models.Experience `json:"experience" bson:"experience"`
-	}
-	type oldProfiles struct {
-		IDPublic  string `json:"id_public" bson:"id_public"`
-		Names     string `json:"names" bson:"names"`
-		Img       string `json:"img" bson:"worker_type"`
-		Phone     string
-		Email     string
-		Birthdate string
-		Worker    OldWorker `json:"worker" bson:"worker"`
-	}
-	var allProfiles []oldProfiles
-	r.profiles.Find(bson.M{}).All(&allProfiles)
-	for i := 0; i < len(allProfiles); i++ {
-		var fields = bson.M{}
+	// type OldWorker struct {
+	// 	WorkerType  int                 `json:"worker_type" bson:"worker_type"`
+	// 	Description string              `json:"description" bson:"description"`
+	// 	Location    models.Location     `json:"location" bson:"location"`
+	// 	Public      bool                `json:"public" bson:"public"`
+	// 	Experience  []models.Experience `json:"experience" bson:"experience"`
+	// }
+	// type oldProfiles struct {
+	// 	IDPublic  string `json:"id_public" bson:"id_public"`
+	// 	Names     string `json:"names" bson:"names"`
+	// 	Img       string `json:"img" bson:"worker_type"`
+	// 	Phone     string
+	// 	Email     string
+	// 	Birthdate string
+	// 	Worker    OldWorker `json:"worker" bson:"worker"`
+	// }
+	// var allProfiles []oldProfiles
+	// r.profiles.Find(bson.M{}).All(&allProfiles)
+	// for i := 0; i < len(allProfiles); i++ {
+	// 	var fields = bson.M{}
 
-		fields["worker_type"] = &allProfiles[i].Worker.WorkerType
-		fields["worker_description"] = &allProfiles[i].Worker.Description
-		fields["worker_public"] = &allProfiles[i].Worker.Public
-		fields["worker_experience"] = allProfiles[i].Worker.Experience
-		fields["location"] = allProfiles[i].Worker.Location
-		r.profiles.Update(bson.M{"id_public": allProfiles[i].IDPublic}, bson.M{"$set": fields})
-	}
+	// 	fields["worker_type"] = &allProfiles[i].Worker.WorkerType
+	// 	fields["worker_description"] = &allProfiles[i].Worker.Description
+	// 	fields["worker_public"] = &allProfiles[i].Worker.Public
+	// 	fields["worker_experience"] = allProfiles[i].Worker.Experience
+	// 	fields["location"] = allProfiles[i].Worker.Location
+	// 	r.profiles.Update(bson.M{"id_public": allProfiles[i].IDPublic}, bson.M{"$set": fields})
+	// }
 	var profiles []*models.Profile
 	var fields = bson.M{}
 
